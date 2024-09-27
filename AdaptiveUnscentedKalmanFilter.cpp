@@ -1,3 +1,5 @@
+// AdaptiveUnscentedKalmanFilter.cpp
+
 #include "AdaptiveUnscentedKalmanFilter.h"
 #include <cmath>
 #include <iostream>
@@ -37,8 +39,8 @@ AdaptiveUnscentedKalmanFilter::AdaptiveUnscentedKalmanFilter(
     }
 
     // Функции перехода и измерения
-    f = f_func ? f_func : std::bind(&AdaptiveUnscentedKalmanFilter::defaultStateTransition, this, std::placeholders::_1);
-    h = h_func ? h_func : std::bind(&AdaptiveUnscentedKalmanFilter::defaultMeasurementFunction, this, std::placeholders::_1);
+    f = f_func ? f_func : [this](const VectorXd& x) { return defaultStateTransition(x); };
+    h = h_func ? h_func : [this](const VectorXd& x) { return defaultMeasurementFunction(x); };
 
     // Матрица управления системным шумом
     Gamma = MatrixXd::Identity(n, n);
@@ -52,7 +54,7 @@ MatrixXd AdaptiveUnscentedKalmanFilter::getCovariance() const {
     return P;
 }
 
-Eigen::MatrixXd AdaptiveUnscentedKalmanFilter::computeSigmaPoints(const Eigen::VectorXd& state, const Eigen::MatrixXd& covariance) {
+MatrixXd AdaptiveUnscentedKalmanFilter::computeSigmaPoints(const VectorXd& state, const MatrixXd& covariance) {
     MatrixXd sigma_points(2 * n + 1, n);
     sigma_points.row(0) = state.transpose();
 
@@ -72,7 +74,7 @@ void AdaptiveUnscentedKalmanFilter::predict() {
     MatrixXd sigma_points = computeSigmaPoints(state, P);
 
     // Шаг 3: Прогнозирование состояния
-    sigma_points_pred = MatrixXd(2 * n + 1, n);
+    sigma_points_pred.resize(2 * n + 1, n);
     for (int i = 0; i < 2 * n + 1; ++i) {
         VectorXd sp = sigma_points.row(i).transpose();
         sigma_points_pred.row(i) = f(sp).transpose();
@@ -125,4 +127,105 @@ void AdaptiveUnscentedKalmanFilter::update(const VectorXd& z) {
     if (P_zz.determinant() != 0) {
         K = P_xz * P_zz.inverse();
     } else {
-        K = P_xz * P_zz
+        K = P_xz * P_zz.completeOrthogonalDecomposition().pseudoInverse();
+    }
+
+    // Шаг 6: Обновление состояния и ковариации
+    VectorXd y = z - z_pred; // Инновация
+    state = x_pred + K * y;
+    P = P_pred - K * P_zz * K.transpose();
+
+    // Сохранение инноваций и остатков
+    VectorXd epsilon = y;
+    VectorXd eta = z - h(state);
+    innovation_history.push_back(epsilon);
+    residual_history.push_back(eta);
+
+    // Ограничиваем размер истории
+    if (innovation_history.size() > M) {
+        innovation_history.erase(innovation_history.begin());
+        residual_history.erase(residual_history.begin());
+    }
+
+    // Адаптивная оценка Q и R
+    adaptProcessNoiseCovariance();
+    adaptMeasurementNoiseCovariance();
+}
+
+void AdaptiveUnscentedKalmanFilter::adaptProcessNoiseCovariance() {
+    if (innovation_history.size() >= M) {
+        // Вычисляем разницу (η_k - ε_k)
+        MatrixXd delta(n, M);
+        for (int i = 0; i < M; ++i) {
+            delta.col(i) = residual_history[i] - innovation_history[i];
+        }
+
+        MatrixXd E_delta = (delta * delta.transpose()) / M; // Ковариация
+
+        // Вычисляем необходимые матрицы
+        MatrixXd H_k = calculateJacobian(h, state);
+        MatrixXd H_k_pred = calculateJacobian(h, x_pred);
+        MatrixXd P_k = P;
+
+        // Вычисляем сумму весов для сигма-точек
+        MatrixXd sum_Wc = MatrixXd::Zero(n, n);
+        for (int i = 0; i < 2 * n + 1; ++i) {
+            VectorXd diff = sigma_points_pred.row(i).transpose() - x_pred;
+            sum_Wc += Wc(i) * diff * diff.transpose();
+        }
+
+        // Решаем уравнение (19)
+        MatrixXd left_term = H_k_pred * Gamma * Q * Gamma.transpose() * H_k_pred.transpose();
+        MatrixXd right_term = E_delta - H_k_pred * sum_Wc * H_k_pred.transpose() + H_k * P_k * H_k.transpose();
+
+        // Предполагая, что Gamma = I
+        MatrixXd H_prod = H_k_pred * H_k_pred.transpose();
+        if (H_prod.determinant() != 0) {
+            Q = 0.9 * Q + 0.1 * H_prod.inverse() * right_term;
+        } else {
+            Q = 0.9 * Q + 0.1 * H_prod.completeOrthogonalDecomposition().pseudoInverse() * right_term;
+        }
+    }
+}
+
+void AdaptiveUnscentedKalmanFilter::adaptMeasurementNoiseCovariance() {
+    if (innovation_history.size() >= M) {
+        // Собираем инновации в матрицу
+        MatrixXd innovations(n, M);
+        for (int i = 0; i < M; ++i) {
+            innovations.col(i) = innovation_history[i];
+        }
+
+        MatrixXd R_new = (innovations * innovations.transpose()) / M;
+
+        // Рекурсивное обновление R
+        R = b * R + (1 - b) * R_new;
+    }
+}
+
+MatrixXd AdaptiveUnscentedKalmanFilter::calculateJacobian(
+    const std::function<VectorXd(const VectorXd&)>& func,
+    const VectorXd& x
+) {
+    double eps = 1e-5;
+    int n = x.size();
+    VectorXd fx = func(x);
+    MatrixXd jacobian(n, n);
+
+    for (int i = 0; i < n; ++i) {
+        VectorXd x_eps = x;
+        x_eps(i) += eps;
+        VectorXd fx_eps = func(x_eps);
+        jacobian.col(i) = (fx_eps - fx) / eps;
+    }
+
+    return jacobian;
+}
+
+VectorXd AdaptiveUnscentedKalmanFilter::defaultStateTransition(const VectorXd& x) {
+    return x; // Тождественная функция
+}
+
+VectorXd AdaptiveUnscentedKalmanFilter::defaultMeasurementFunction(const VectorXd& x) {
+    return x; // Тождественная функция
+}
