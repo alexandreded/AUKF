@@ -29,7 +29,8 @@ public:
     Eigen::MatrixXd getCovariance() const;
 
 private:
-    int n; // Размерность состояния
+    int n_x; // Размерность состояния
+    int n_z; // Размерность измерения
 
     // Параметры UKF
     double alpha;
