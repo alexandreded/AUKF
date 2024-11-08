@@ -8,21 +8,47 @@
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), currentTime(0) {
     // Инициализация фильтра и симуляции
-    int n = 4;
-    Eigen::VectorXd initial_state(n);
-    initial_state << 0.2, 0.2, 0.3, 0.3;
-    Eigen::MatrixXd initial_covariance = Eigen::MatrixXd::Identity(n, n) * 3.795;
-    Eigen::MatrixXd process_noise_cov = Eigen::MatrixXd::Identity(n, n) * 7.698;
-    Eigen::MatrixXd measurement_noise_cov = Eigen::MatrixXd::Identity(n, n) * 0.5978;
+    int n_x = 2; // Размерность состояния (координаты x и y)
+    int n_z = 4; // Размерность измерения (4 интенсивности)
 
-    filter = new AdaptiveUnscentedKalmanFilter(
+    Eigen::VectorXd initial_state(n_x);
+    initial_state << 0.0, 0.0;
+    Eigen::MatrixXd initial_covariance = Eigen::MatrixXd::Identity(n_x, n_x) * 1.0;
+    Eigen::MatrixXd process_noise_cov = Eigen::MatrixXd::Identity(n_x, n_x) * 0.01;
+    Eigen::MatrixXd measurement_noise_cov = Eigen::MatrixXd::Identity(n_z, n_z) * 0.1;
+
+    // Определение функций перехода и измерения
+    AdaptiveUnscentedKalmanFilter::StateTransitionFunction f = [](const Eigen::VectorXd& x) {
+        return x; // Предполагаем, что состояние не меняется (постоянная скорость)
+    };
+
+    AdaptiveUnscentedKalmanFilter::MeasurementFunction h = [](const Eigen::VectorXd& x) {
+        double P0 = 1.0;
+        double w = 1.0;
+
+        double x_c = x(0);
+        double y_c = x(1);
+
+        double I_A = 2 * P0 / (M_PI * w * w) * std::exp(-2 * ((1 - x_c) * (1 - x_c) + (1 - y_c) * (1 - y_c)) / (w * w));
+        double I_B = 2 * P0 / (M_PI * w * w) * std::exp(-2 * ((-1 - x_c) * (-1 - x_c) + (1 - y_c) * (1 - y_c)) / (w * w));
+        double I_C = 2 * P0 / (M_PI * w * w) * std::exp(-2 * ((-1 - x_c) * (-1 - x_c) + (-1 - y_c) * (-1 - y_c)) / (w * w));
+        double I_D = 2 * P0 / (M_PI * w * w) * std::exp(-2 * ((1 - x_c) * (1 - x_c) + (-1 - y_c) * (-1 - y_c)) / (w * w));
+
+        Eigen::VectorXd z(4);
+        z << I_A, I_B, I_C, I_D;
+        return z;
+    };
+
+    filter = std::make_unique<AdaptiveUnscentedKalmanFilter>(
         initial_state,
         initial_covariance,
         process_noise_cov,
-        measurement_noise_cov
+        measurement_noise_cov,
+        f,
+        h
     );
 
-    simulation = new BeamSimulation(1.0, 1.0, -1.0, 0.0);
+    simulation = std::make_unique<BeamSimulation>(1.0, 1.0, -1.0, 0.0);
 
     // Создание интерфейса
     QWidget *centralWidget = new QWidget();
@@ -61,27 +87,21 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), currentTime(0) {
     curveIC->attach(intensityPlot);
     curveID->attach(intensityPlot);
 
-    statePlot = new QwtPlot("Filtered States");
-    statePlot->setAxisTitle(QwtPlot::xBottom, "Time");
-    statePlot->setAxisTitle(QwtPlot::yLeft, "State Values");
+    coordinatePlot = new QwtPlot("Beam Position");
+    coordinatePlot->setAxisTitle(QwtPlot::xBottom, "Time");
+    coordinatePlot->setAxisTitle(QwtPlot::yLeft, "X Coordinate");
 
-    curveState1 = new QwtPlotCurve("State 1");
-    curveState2 = new QwtPlotCurve("State 2");
-    curveState3 = new QwtPlotCurve("State 3");
-    curveState4 = new QwtPlotCurve("State 4");
+    curveRealX = new QwtPlotCurve("Real X");
+    curveEstimatedX = new QwtPlotCurve("Estimated X");
 
-    curveState1->setPen(Qt::red);
-    curveState2->setPen(Qt::green);
-    curveState3->setPen(Qt::blue);
-    curveState4->setPen(Qt::magenta);
+    curveRealX->setPen(Qt::blue);
+    curveEstimatedX->setPen(Qt::red);
 
-    curveState1->attach(statePlot);
-    curveState2->attach(statePlot);
-    curveState3->attach(statePlot);
-    curveState4->attach(statePlot);
+    curveRealX->attach(coordinatePlot);
+    curveEstimatedX->attach(coordinatePlot);
 
     mainLayout->addWidget(intensityPlot);
-    mainLayout->addWidget(statePlot);
+    mainLayout->addWidget(coordinatePlot);
 
     centralWidget->setLayout(mainLayout);
     setCentralWidget(centralWidget);
@@ -112,15 +132,29 @@ void MainWindow::updatePlots() {
 
     // Обновление данных для графиков
     timeData.append(currentTime);
+
     IAData.append(measurement(0));
     IBData.append(measurement(1));
     ICData.append(measurement(2));
     IDData.append(measurement(3));
 
-    state1Data.append(state(0));
-    state2Data.append(state(1));
-    state3Data.append(state(2));
-    state4Data.append(state(3));
+    double realX = simulation->getXc();
+    double estimatedX = state(0);
+
+    realXData.append(realX);
+    estimatedXData.append(estimatedX);
+
+    // Ограничение размера данных
+    const int maxPoints = 1000;
+    if (timeData.size() > maxPoints) {
+        timeData.remove(0);
+        IAData.remove(0);
+        IBData.remove(0);
+        ICData.remove(0);
+        IDData.remove(0);
+        realXData.remove(0);
+        estimatedXData.remove(0);
+    }
 
     // Обновление графиков
     curveIA->setSamples(timeData, IAData);
@@ -128,13 +162,11 @@ void MainWindow::updatePlots() {
     curveIC->setSamples(timeData, ICData);
     curveID->setSamples(timeData, IDData);
 
-    curveState1->setSamples(timeData, state1Data);
-    curveState2->setSamples(timeData, state2Data);
-    curveState3->setSamples(timeData, state3Data);
-    curveState4->setSamples(timeData, state4Data);
+    curveRealX->setSamples(timeData, realXData);
+    curveEstimatedX->setSamples(timeData, estimatedXData);
 
     intensityPlot->replot();
-    statePlot->replot();
+    coordinatePlot->replot();
 
     currentTime++;
 }
