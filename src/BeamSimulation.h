@@ -17,6 +17,10 @@ public:
     double getXc() const;
     double getYc() const;
 
+    // Установка параметров
+    void setNoiseLevel(double level);
+    void setSpeed(double new_speed);
+
 private:
     double P0;      // Мощность луча
     double w;       // Ширина луча
@@ -30,14 +34,17 @@ private:
     double bounds_min;      // Нижняя граница движения
     double bounds_max;      // Верхняя граница движения
 
+    double noise_level;     // Уровень шума
+
     // Функции для генерации данных
     double h_function(double x, double y, double X, double Y);
-    double erfinv(double x);
-    double g_function(double Ex);
-    double lambda_func(double x0);
 
     // Генерация случайного шума
     double randomNoise(double level);
+
+    // Генератор случайных чисел
+    std::mt19937 generator;
+    std::uniform_real_distribution<double> distribution;
 };
 
 #endif // BEAM_SIMULATION_H
