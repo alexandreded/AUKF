@@ -5,6 +5,9 @@
 #include <QPushButton>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <qwt_plot.h>
+#include <qwt_text.h>
+
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), currentTime(0) {
     // Инициализация фильтра и симуляции
@@ -68,7 +71,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), currentTime(0) {
     mainLayout->addLayout(buttonLayout);
 
     // Создание графиков
-    intensityPlot = new QwtPlot("Quadrant Intensities");
+    intensityPlot = new QwtPlot(QwtText("Quadrant Intensities"));
     intensityPlot->setAxisTitle(QwtPlot::xBottom, "Time");
     intensityPlot->setAxisTitle(QwtPlot::yLeft, "Intensity");
 
@@ -87,7 +90,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), currentTime(0) {
     curveIC->attach(intensityPlot);
     curveID->attach(intensityPlot);
 
-    coordinatePlot = new QwtPlot("Beam Position");
+    coordinatePlot = new QwtPlot(QwtText("Beam Position"));
     coordinatePlot->setAxisTitle(QwtPlot::xBottom, "Time");
     coordinatePlot->setAxisTitle(QwtPlot::yLeft, "X Coordinate");
 

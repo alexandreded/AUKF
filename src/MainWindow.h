@@ -11,6 +11,9 @@
 #include <QTimer>
 #include <QVector>
 #include <memory>
+#include <qwt_plot.h>
+#include <qwt_text.h>
+
 
 class MainWindow : public QMainWindow {
     Q_OBJECT

@@ -25,7 +25,7 @@ AdaptiveUnscentedKalmanFilter::AdaptiveUnscentedKalmanFilter(
     kappa(kappa_param)
 {
     n_x = state.size();
-    n_z = measurement_noise_cov.rows(); // Предполагаем, что R квадратная
+    n_z = R.rows(); // Предполагаем, что R квадратная
 
     lambda_ = alpha * alpha * (n_x + kappa) - n_x;
 
@@ -46,6 +46,10 @@ AdaptiveUnscentedKalmanFilter::AdaptiveUnscentedKalmanFilter(
 
     // Матрица управления системным шумом
     Gamma = MatrixXd::Identity(n_x, n_x);
+
+    // Параметры адаптации
+    M = 30;    // Размер окна для оценки
+    b = 0.95;  // Параметр сглаживания для R
 }
 
 VectorXd AdaptiveUnscentedKalmanFilter::getState() const {
@@ -62,7 +66,7 @@ MatrixXd AdaptiveUnscentedKalmanFilter::computeSigmaPoints(const VectorXd& state
     sigma_points.col(0) = state;
 
     // Проверка положительной определенности
-    Eigen::MatrixXd covariance_adjusted = covariance;
+    MatrixXd covariance_adjusted = covariance;
     SelfAdjointEigenSolver<MatrixXd> eigen_solver(covariance);
     VectorXd eigenvalues = eigen_solver.eigenvalues();
     if (eigenvalues.minCoeff() <= 0) {
@@ -139,13 +143,7 @@ void AdaptiveUnscentedKalmanFilter::update(const VectorXd& z) {
     }
 
     // Шаг 5: Расчет коэффициента усиления Калмана
-    MatrixXd K;
-    JacobiSVD<MatrixXd> svd(P_zz, ComputeThinU | ComputeThinV);
-    if (svd.rank() == P_zz.rows()) {
-        K = P_xz * P_zz.inverse();
-    } else {
-        K = P_xz * P_zz.completeOrthogonalDecomposition().pseudoInverse();
-    }
+    MatrixXd K = P_xz * P_zz.inverse();
 
     // Шаг 6: Обновление состояния и ковариации
     VectorXd y = z - z_pred; // Инновация
@@ -181,20 +179,14 @@ void AdaptiveUnscentedKalmanFilter::adaptProcessNoiseCovariance() {
         MatrixXd E_delta = (delta * delta.transpose()) / M; // Ковариация
 
         // Вычисляем необходимые матрицы
-        MatrixXd H_k = calculateJacobian(h, state);
         MatrixXd H_k_pred = calculateJacobian(h, x_pred);
 
         // Решаем уравнение (19)
-        MatrixXd left_term = H_k_pred * Gamma * Q * Gamma.transpose() * H_k_pred.transpose();
-        MatrixXd right_term = E_delta - H_k_pred * P_pred * H_k_pred.transpose() + H_k * P * H_k.transpose();
+        MatrixXd left_term = H_k_pred * Q * H_k_pred.transpose();
+        MatrixXd right_term = E_delta - H_k_pred * P_pred * H_k_pred.transpose();
 
-        // Предполагая, что Gamma = I
-        MatrixXd H_prod = H_k_pred * H_k_pred.transpose();
-        if (H_prod.determinant() != 0) {
-            Q = 0.9 * Q + 0.1 * H_prod.inverse() * right_term;
-        } else {
-            Q = 0.9 * Q + 0.1 * H_prod.completeOrthogonalDecomposition().pseudoInverse() * right_term;
-        }
+        // Обновляем Q
+        Q = 0.9 * Q + 0.1 * (H_k_pred.transpose() * left_term.inverse() * right_term * left_term.inverse() * H_k_pred);
 
         // Ограничение Q для обеспечения положительной определенности
         SelfAdjointEigenSolver<MatrixXd> eigen_solver(Q);

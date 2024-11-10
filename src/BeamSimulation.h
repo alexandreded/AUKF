@@ -5,6 +5,7 @@
 
 #include <Eigen/Dense>
 #include <vector>
+#include <random>
 #include <functional>
 
 class BeamSimulation {

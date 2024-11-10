@@ -1,0 +1,5 @@
+/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build/CMakeFiles/AUKFProject.dir
+/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build/CMakeFiles/edit_cache.dir
+/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build/CMakeFiles/rebuild_cache.dir
+/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build/CMakeFiles/AUKFProject_autogen_timestamp_deps.dir
+/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build/CMakeFiles/AUKFProject_autogen.dir

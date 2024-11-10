@@ -1,0 +1,16 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug AUKFProject",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/AUKFProject",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "stopOnEntry": false,
+            "terminal": "integrated",
+            "env": {}
+        }
+    ]
+}
