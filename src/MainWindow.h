@@ -21,13 +21,13 @@ public:
     MainWindow(QWidget *parent = nullptr);
 
 private slots:
-    void updatePlots();
-    void onParametersChanged();
-    void startSimulation();
-    void stopSimulation();
+    void updatePlots();                  // Обновление графиков
+    void onParametersChanged();           // Обработчик изменения параметров
+    void startSimulation();               // Старт симуляции
+    void stopSimulation();                // Остановка симуляции
 
 private:
-    // Параметры
+    // Параметры фильтра и шума
     double alpha;
     double beta;
     double kappa;
@@ -35,7 +35,7 @@ private:
     double measurementNoise;
     double noiseLevel;
 
-    // UI элементы для настройки параметров
+    // UI элементы для настройки параметров фильтра и шума
     QLineEdit *alphaEdit;
     QLineEdit *betaEdit;
     QLineEdit *kappaEdit;
@@ -47,50 +47,49 @@ private:
     QPushButton *startButton;
     QPushButton *stopButton;
 
-    // Плоты
-    QwtPlot *rawIntensityPlot;
-    QwtPlot *filteredIntensityPlot;
-    QwtPlot *estimatedCoordinatePlot;
-    QwtPlot *trueCoordinatePlot;
+    // Графики для отображения данных
+    QwtPlot *rawIntensityPlot;            // График необработанных интенсивностей
+    QwtPlot *filteredIntensityPlot;       // График фильтрованных интенсивностей
+    QwtPlot *estimatedCoordinatePlot;     // График оцененных координат
+    QwtPlot *trueCoordinatePlot;          // График истинных координат
 
     // Кривые интенсивностей
-    QwtPlotCurve *rawIntensityCurves[4];
-    QwtPlotCurve *filteredIntensityCurves[4];
+    QwtPlotCurve *rawIntensityCurves[4];   // Кривые для 4 источников необработанных интенсивностей
+    QwtPlotCurve *filteredIntensityCurves[4]; // Кривые для 4 источников фильтрованных интенсивностей
 
     // Кривые координат
-    QwtPlotCurve *estimatedPositionCurveX;
-    QwtPlotCurve *estimatedPositionCurveY;
-    QwtPlotCurve *truePositionCurveX;
-    QwtPlotCurve *truePositionCurveY;
+    QwtPlotCurve *estimatedPositionCurveX; // Кривая для X координаты (оценка)
+    QwtPlotCurve *estimatedPositionCurveY; // Кривая для Y координаты (оценка)
+    QwtPlotCurve *truePositionCurveX;      // Кривая для X координаты (истинное значение)
+    QwtPlotCurve *truePositionCurveY;      // Кривая для Y координаты (истинное значение)
 
     // Данные для графиков
-    QVector<double> timeData;
-    QVector<double> rawIntensityData[4];
-    QVector<double> filteredIntensityData[4];
-    QVector<double> estimatedXData;
-    QVector<double> estimatedYData;
-    QVector<double> trueXData;
-    QVector<double> trueYData;
+    QVector<double> timeData;              // Временные метки
+    QVector<double> rawIntensityData[4];   // Необработанные данные интенсивностей
+    QVector<double> filteredIntensityData[4]; // Фильтрованные данные интенсивностей
+    QVector<double> estimatedXData;        // Оцененная координата X
+    QVector<double> estimatedYData;        // Оцененная координата Y
+    QVector<double> trueXData;             // Истинная координата X
+    QVector<double> trueYData;             // Истинная координата Y
 
-    // Таймер для обновления
+    // Таймер для обновления графиков
     QTimer *updateTimer;
-    double currentTime;
-    double timeStep;
+    double currentTime;                    // Текущее время
+    double timeStep;                       // Шаг времени
 
-    // Итерация
+    // Переменные для итерации и управления состоянием симуляции
     int iteration;
-
-    // Состояние симуляции
     bool isRunning;
 
-    // Экземпляры классов
+    // Экземпляры классов для фильтра и симуляции
     AdaptiveUnscentedKalmanFilter *kalmanFilter;
     BeamSimulation *beamSimulation;
 
-    void setupPlots();
-    void setupUI();
-    void initializeCurves();
-    void resetSimulation();
+    // Методы для настройки графиков, UI и инициализации
+    void setupPlots();                     // Настройка графиков
+    void setupUI();                        // Настройка интерфейса пользователя
+    void initializeCurves();               // Инициализация кривых на графиках
+    void resetSimulation();                // Сброс параметров симуляции
 };
 
 #endif // MAINWINDOW_H

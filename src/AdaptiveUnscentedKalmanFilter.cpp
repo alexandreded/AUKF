@@ -1,6 +1,5 @@
 #include "AdaptiveUnscentedKalmanFilter.h"
 #include <cmath>
-//#include <iostream>
 
 AdaptiveUnscentedKalmanFilter::AdaptiveUnscentedKalmanFilter(const Eigen::VectorXd &initial_state,
                                                              const Eigen::MatrixXd &initial_covariance,
@@ -73,6 +72,7 @@ std::vector<Eigen::VectorXd> AdaptiveUnscentedKalmanFilter::computeSigmaPoints()
     std::vector<Eigen::VectorXd> sigma_points(sigma_point_count, Eigen::VectorXd(n));
     double scaling_factor = sqrt(n + lambda_);
 
+    // Используем разложение Холецкого с помощью Eigen для квадратного корня ковариационной матрицы
     Eigen::MatrixXd sqrt_covariance = covariance.llt().matrixL();
 
     sigma_points[0] = state;
@@ -85,34 +85,37 @@ std::vector<Eigen::VectorXd> AdaptiveUnscentedKalmanFilter::computeSigmaPoints()
     return sigma_points;
 }
 
+
+//Eigen::MatrixXd AdaptiveUnscentedKalmanFilter::choleskyDecomposition(const Eigen::MatrixXd &matrix) {
+ //   return matrix.llt().matrixL(); // возвращает нижнюю треугольную часть разложения Холецкого
+//}
+
 void AdaptiveUnscentedKalmanFilter::predict() {
     auto sigma_points = computeSigmaPoints();
     std::vector<Eigen::VectorXd> predicted_sigma_points(sigma_point_count, Eigen::VectorXd(n));
 
-    // Функция перехода состояния (можно заменить на нелинейную функцию при необходимости)
     for (int i = 0; i < sigma_point_count; ++i) {
-        predicted_sigma_points[i] = sigma_points[i]; // Линейная модель
+        predicted_sigma_points[i] = sigma_points[i];  // Здесь может быть нелинейная функция перехода состояния
     }
 
-    // Предсказанное состояние
+    // Вычисление среднего предсказанного состояния
     Eigen::VectorXd predicted_state = Eigen::VectorXd::Zero(n);
     for (int i = 0; i < sigma_point_count; ++i) {
         predicted_state += weights_mean[i] * predicted_sigma_points[i];
     }
 
-    // Предсказанная ковариация
+    // Вычисление предсказанной ковариации с добавлением шума процесса
     Eigen::MatrixXd predicted_covariance = Eigen::MatrixXd::Zero(n, n);
     for (int i = 0; i < sigma_point_count; ++i) {
         Eigen::VectorXd diff = predicted_sigma_points[i] - predicted_state;
         predicted_covariance += weights_covariance[i] * diff * diff.transpose();
     }
+    predicted_covariance += process_noise_cov;  // Добавление шума процесса
 
-    predicted_covariance += process_noise_cov;
-
-    // Обновляем состояние и ковариацию
     state = predicted_state;
     covariance = predicted_covariance;
 }
+
 
 void AdaptiveUnscentedKalmanFilter::update(const Eigen::VectorXd &measurement) {
     auto sigma_points = computeSigmaPoints();
@@ -121,10 +124,10 @@ void AdaptiveUnscentedKalmanFilter::update(const Eigen::VectorXd &measurement) {
     // Прогноз измерений
     std::vector<Eigen::VectorXd> predicted_measurements(sigma_point_count, Eigen::VectorXd(measurement_dim));
     for (int i = 0; i < sigma_point_count; ++i) {
-        predicted_measurements[i] = sigma_points[i]; // Линейная модель измерения
+        predicted_measurements[i] = sigma_points[i];  // Модель измерения
     }
 
-    // Предсказанное измерение
+    // Среднее предсказанное измерение
     Eigen::VectorXd predicted_measurement_mean = Eigen::VectorXd::Zero(measurement_dim);
     for (int i = 0; i < sigma_point_count; ++i) {
         predicted_measurement_mean += weights_mean[i] * predicted_measurements[i];
@@ -138,7 +141,7 @@ void AdaptiveUnscentedKalmanFilter::update(const Eigen::VectorXd &measurement) {
     }
     S += measurement_noise_cov;
 
-    // Кросс-ковариация
+    // Кросс-ковариация состояния и измерения
     Eigen::MatrixXd cross_covariance = Eigen::MatrixXd::Zero(n, measurement_dim);
     for (int i = 0; i < sigma_point_count; ++i) {
         Eigen::VectorXd state_diff = sigma_points[i] - state;
@@ -146,45 +149,15 @@ void AdaptiveUnscentedKalmanFilter::update(const Eigen::VectorXd &measurement) {
         cross_covariance += weights_covariance[i] * state_diff * measurement_diff.transpose();
     }
 
-    // Коэффициент усиления Калмана
+    // Вычисление коэффициента Калмана
     Eigen::MatrixXd K = cross_covariance * S.inverse();
 
     // Обновление состояния и ковариации
     Eigen::VectorXd innovation = measurement - predicted_measurement_mean;
     state += K * innovation;
     covariance -= K * S * K.transpose();
-
-    // Сохранение инноваций и остатков для адаптивной оценки
-    Eigen::VectorXd epsilon = measurement - predicted_measurement_mean;
-    Eigen::VectorXd eta = measurement - state;
-    innovation_history.push_back(epsilon);
-    residual_history.push_back(eta);
-
-    if (innovation_history.size() > adapt_window) {
-        innovation_history.erase(innovation_history.begin());
-        residual_history.erase(residual_history.begin());
-    }
-
-    // Адаптивная оценка ковариаций
-    if (innovation_history.size() >= adapt_window) {
-        // Преобразование историй в матрицы
-        Eigen::MatrixXd innovation_seq(measurement_dim, adapt_window);
-        Eigen::MatrixXd residual_seq(measurement_dim, adapt_window);
-        for (int i = 0; i < adapt_window; ++i) {
-            innovation_seq.col(i) = innovation_history[i];
-            residual_seq.col(i) = residual_history[i];
-        }
-
-        // Оценка ковариаций
-        Eigen::MatrixXd Q_adapt = (innovation_seq * innovation_seq.transpose()) / adapt_window;
-        Eigen::MatrixXd R_adapt = (residual_seq * residual_seq.transpose()) / adapt_window;
-
-        // Обновление ковариаций с экспоненциальным сглаживанием
-        double gamma = 0.1;
-        process_noise_cov = (1 - gamma) * process_noise_cov + gamma * Q_adapt;
-        measurement_noise_cov = (1 - gamma) * measurement_noise_cov + gamma * R_adapt;
-    }
 }
+
 
 Eigen::VectorXd AdaptiveUnscentedKalmanFilter::getState() const {
     return state;
@@ -194,24 +167,20 @@ Eigen::MatrixXd AdaptiveUnscentedKalmanFilter::getCovariance() const {
     return covariance;
 }
 
-// Функция h для распределения энергии
 double AdaptiveUnscentedKalmanFilter::h(double x, double y, double P0, double X, double Y, double w) {
     return 2 * P0 / (M_PI * w * w) * std::exp(-2 * ((x - X)*(x - X) + (y - Y)*(y - Y)) / (w * w));
 }
 
-// Функция g для преобразования координаты
 double AdaptiveUnscentedKalmanFilter::g(double Ex) {
     return erfinv(Ex) / std::sqrt(2.0);
 }
 
-// Функция компенсации ошибки lambda(x0)
 double AdaptiveUnscentedKalmanFilter::lambdaFunc(double x0) {
     double a = 1.0;
     double b = 0.0;
     return a * x0 + b;
 }
 
-// Вычисление положения пятна
 Eigen::Vector2d AdaptiveUnscentedKalmanFilter::calculateSpotPosition(double I_A, double I_B, double I_C, double I_D, double w, double x0) {
     double sum_I = I_A + I_B + I_C + I_D;
     double E_X = ((I_A + I_D) - (I_B + I_C)) / sum_I;
@@ -223,11 +192,8 @@ Eigen::Vector2d AdaptiveUnscentedKalmanFilter::calculateSpotPosition(double I_A,
     return Eigen::Vector2d(x, y);
 }
 
-// Функция обратной ошибки (erfinv)
 double AdaptiveUnscentedKalmanFilter::erfinv(double x) {
-    // Используем приближение для erfinv(x)
-    double a = 0.147; // Константа для приближения
-
+    double a = 0.147;
     double ln = std::log(1 - x * x);
     double term = (2 / (M_PI * a)) + (ln / 2);
     double erfinv = std::copysign(std::sqrt(std::sqrt(term * term - (ln / a)) - term), x);
