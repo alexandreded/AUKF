@@ -2,76 +2,59 @@
 #define ADAPTIVE_UNSCENTED_KALMAN_FILTER_H
 
 #include <Eigen/Dense>
-#include <functional>
 #include <vector>
 
 class AdaptiveUnscentedKalmanFilter {
 public:
-    using StateTransitionFunction = std::function<Eigen::VectorXd(const Eigen::VectorXd&)>;
-    using MeasurementFunction = std::function<Eigen::VectorXd(const Eigen::VectorXd&)>;
-
-    AdaptiveUnscentedKalmanFilter(
-        const Eigen::VectorXd& initial_state,
-        const Eigen::MatrixXd& initial_covariance,
-        const Eigen::MatrixXd& process_noise_cov,
-        const Eigen::MatrixXd& measurement_noise_cov,
-        StateTransitionFunction f = nullptr,
-        MeasurementFunction h = nullptr,
-        double alpha = 1e-3,
-        double beta = 2.0,
-        double kappa = 0.0
-    );
+    AdaptiveUnscentedKalmanFilter(const Eigen::VectorXd &initial_state,
+                                  const Eigen::MatrixXd &initial_covariance,
+                                  const Eigen::MatrixXd &process_noise_cov,
+                                  const Eigen::MatrixXd &measurement_noise_cov);
 
     void predict();
-    void update(const Eigen::VectorXd& z);
+    void update(const Eigen::VectorXd &measurement);
 
     Eigen::VectorXd getState() const;
     Eigen::MatrixXd getCovariance() const;
 
-private:
-    int n_x; // Размерность состояния
-    int n_z; // Размерность измерения
+    void setParameters(double alpha, double beta, double kappa);
+    void setProcessNoiseCovariance(double processNoise);
+    void setMeasurementNoiseCovariance(double measurementNoise);
 
-    // Параметры UKF
+    void reset(const Eigen::VectorXd &initial_state, const Eigen::MatrixXd &initial_covariance);
+
+    // Функция для вычисления положения пятна
+    Eigen::Vector2d calculateSpotPosition(double I_A, double I_B, double I_C, double I_D, double w, double x0);
+
+private:
+    Eigen::VectorXd state;
+    Eigen::MatrixXd covariance;
+    Eigen::MatrixXd process_noise_cov;
+    Eigen::MatrixXd measurement_noise_cov;
+    int n;
     double alpha;
     double beta;
     double kappa;
     double lambda_;
+    int sigma_point_count;
 
-    Eigen::VectorXd Wm; // Веса для среднего
-    Eigen::VectorXd Wc; // Веса для ковариации
+    std::vector<double> weights_mean;
+    std::vector<double> weights_covariance;
 
-    Eigen::VectorXd state; // Текущее состояние
-    Eigen::MatrixXd P;     // Ковариация состояния
-    Eigen::MatrixXd Q;     // Ковариация шума процесса
-    Eigen::MatrixXd R;     // Ковариация шума измерения
+    int adapt_window;
 
-    StateTransitionFunction f; // Функция перехода состояния
-    MeasurementFunction h;     // Функция измерения
-
-    // Переменные для предсказаний
-    Eigen::MatrixXd sigma_points_pred;
-    Eigen::VectorXd x_pred;
-    Eigen::MatrixXd P_pred;
-
-    // История для адаптивной оценки
     std::vector<Eigen::VectorXd> innovation_history;
     std::vector<Eigen::VectorXd> residual_history;
 
-    // Параметры адаптации
-    int M = 30;                   // Размер окна для оценки
-    Eigen::MatrixXd Gamma;        // Матрица управления системным шумом
-    double b = 0.95;              // Параметр сглаживания для R
+    std::vector<Eigen::VectorXd> computeSigmaPoints();
 
-    // Методы
-    Eigen::MatrixXd computeSigmaPoints(const Eigen::VectorXd& state, const Eigen::MatrixXd& covariance);
-    void adaptProcessNoiseCovariance();
-    void adaptMeasurementNoiseCovariance();
-    Eigen::MatrixXd calculateJacobian(const std::function<Eigen::VectorXd(const Eigen::VectorXd&)>& func, const Eigen::VectorXd& x);
+    // Функции распределения
+    double h(double x, double y, double P0, double X, double Y, double w);
+    double g(double Ex);
+    double lambdaFunc(double x0);
 
-    // Функции по умолчанию
-    Eigen::VectorXd defaultStateTransition(const Eigen::VectorXd& x);
-    Eigen::VectorXd defaultMeasurementFunction(const Eigen::VectorXd& x);
+    // Функция обратной ошибки
+    double erfinv(double x);
 };
 
 #endif // ADAPTIVE_UNSCENTED_KALMAN_FILTER_H

@@ -1,62 +1,96 @@
-// MainWindow.h
-
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include "AdaptiveUnscentedKalmanFilter.h"
-#include "BeamSimulation.h"
 #include <qwt_plot.h>
 #include <qwt_plot_curve.h>
 #include <QTimer>
-#include <QVector>
-#include <memory>
-#include <qwt_plot.h>
-#include <qwt_text.h>
+#include <QLineEdit>
+#include <QLabel>
+#include <QPushButton>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include "AdaptiveUnscentedKalmanFilter.h"
+#include "BeamSimulation.h"
 
-
-class MainWindow : public QMainWindow {
+class MainWindow : public QMainWindow
+{
     Q_OBJECT
 
 public:
     MainWindow(QWidget *parent = nullptr);
 
 private slots:
+    void updatePlots();
+    void onParametersChanged();
     void startSimulation();
     void stopSimulation();
-    void updatePlots();
 
 private:
-    std::unique_ptr<AdaptiveUnscentedKalmanFilter> filter;
-    std::unique_ptr<BeamSimulation> simulation;
+    // Параметры
+    double alpha;
+    double beta;
+    double kappa;
+    double processNoise;
+    double measurementNoise;
+    double noiseLevel;
 
-    QTimer *timer;
+    // UI элементы для настройки параметров
+    QLineEdit *alphaEdit;
+    QLineEdit *betaEdit;
+    QLineEdit *kappaEdit;
+    QLineEdit *processNoiseEdit;
+    QLineEdit *measurementNoiseEdit;
+    QLineEdit *noiseLevelEdit;
 
-    // Графики интенсивностей
-    QwtPlot *intensityPlot;
-    QwtPlotCurve *curveIA;
-    QwtPlotCurve *curveIB;
-    QwtPlotCurve *curveIC;
-    QwtPlotCurve *curveID;
+    // Кнопки управления
+    QPushButton *startButton;
+    QPushButton *stopButton;
 
-    // Графики состояний
-    QwtPlot *statePlot;
-    QwtPlotCurve *curveState1;
-    QwtPlotCurve *curveState2;
-    QwtPlotCurve *curveState3;
-    QwtPlotCurve *curveState4;
+    // Плоты
+    QwtPlot *rawIntensityPlot;
+    QwtPlot *filteredIntensityPlot;
+    QwtPlot *estimatedCoordinatePlot;
+    QwtPlot *trueCoordinatePlot;
 
-    // График координат
-    QwtPlot *coordinatePlot;
-    QwtPlotCurve *curveRealX;
-    QwtPlotCurve *curveEstimatedX;
+    // Кривые интенсивностей
+    QwtPlotCurve *rawIntensityCurves[4];
+    QwtPlotCurve *filteredIntensityCurves[4];
 
+    // Кривые координат
+    QwtPlotCurve *estimatedPositionCurveX;
+    QwtPlotCurve *estimatedPositionCurveY;
+    QwtPlotCurve *truePositionCurveX;
+    QwtPlotCurve *truePositionCurveY;
+
+    // Данные для графиков
     QVector<double> timeData;
-    QVector<double> IAData, IBData, ICData, IDData;
-    QVector<double> state1Data, state2Data, state3Data, state4Data;
-    QVector<double> realXData, estimatedXData;
+    QVector<double> rawIntensityData[4];
+    QVector<double> filteredIntensityData[4];
+    QVector<double> estimatedXData;
+    QVector<double> estimatedYData;
+    QVector<double> trueXData;
+    QVector<double> trueYData;
 
-    int currentTime;
+    // Таймер для обновления
+    QTimer *updateTimer;
+    double currentTime;
+    double timeStep;
+
+    // Итерация
+    int iteration;
+
+    // Состояние симуляции
+    bool isRunning;
+
+    // Экземпляры классов
+    AdaptiveUnscentedKalmanFilter *kalmanFilter;
+    BeamSimulation *beamSimulation;
+
+    void setupPlots();
+    void setupUI();
+    void initializeCurves();
+    void resetSimulation();
 };
 
 #endif // MAINWINDOW_H

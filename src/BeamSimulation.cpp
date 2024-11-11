@@ -1,35 +1,28 @@
-// BeamSimulation.cpp
-
 #include "BeamSimulation.h"
 #include <cmath>
-#include <random>
 
-BeamSimulation::BeamSimulation(double P0_, double w_, double x0_, double y0_)
-    : P0(P0_), w(w_), x_c(x0_), y_c(y0_), k(1), speed(0.01), adc_time_step(14e-6),
-      bounds_min(-1.0), bounds_max(1.0), noise_level(0.1),
-      generator(std::random_device{}()), distribution(-0.5, 0.5)
+BeamSimulation::BeamSimulation()
+    : x_c(-1.0), k(1), noiseLevel(0.6), noiseDistribution(0.0, 0.6)
 {
-    // Инициализация генератора случайных чисел выполнена в списке инициализации
+    generator.seed(std::random_device{}());
 }
 
-double BeamSimulation::getXc() const {
-    return x_c;
+void BeamSimulation::setNoiseLevel(double noiseLevel) {
+    this->noiseLevel = noiseLevel;
+    noiseDistribution = std::normal_distribution<double>(0.0, noiseLevel);
 }
 
-double BeamSimulation::getYc() const {
-    return y_c;
+double BeamSimulation::h(double x, double y, double P0, double X, double Y, double w) {
+    return 2 * P0 / (M_PI * w * w) * std::exp(-2 * ((x - X)*(x - X) + (y - Y)*(y - Y)) / (w * w));
 }
 
-void BeamSimulation::setNoiseLevel(double level) {
-    noise_level = level;
-}
+Eigen::VectorXd BeamSimulation::moveBeamAndIntegrate(double P0, double w, double y_c, int iteration) {
+    double speed = 0.3;
+    double bounds_min = -1.0;
+    double bounds_max = 1.0;
+    double adc_time_step = 0.001;
 
-void BeamSimulation::setSpeed(double new_speed) {
-    speed = new_speed;
-}
-
-Eigen::VectorXd BeamSimulation::generateMeasurement(int iteration) {
-    // Обновление положения x_c
+    // Обновление x_c
     x_c += k * speed * adc_time_step;
 
     // Проверка на границы и изменение направления
@@ -42,20 +35,19 @@ Eigen::VectorXd BeamSimulation::generateMeasurement(int iteration) {
     }
 
     // Интегрирование для каждого квадранта с добавлением шума
-    double I_A = h_function(1, 1, x_c, y_c) + randomNoise(noise_level);
-    double I_B = h_function(-1, 1, x_c, y_c) + randomNoise(noise_level);
-    double I_C = h_function(-1, -1, x_c, y_c) + randomNoise(noise_level);
-    double I_D = h_function(1, -1, x_c, y_c) + randomNoise(noise_level);
+    double noise_factor = 1.0;
 
-    Eigen::VectorXd measurement(4);
-    measurement << I_A, I_B, I_C, I_D;
-    return measurement;
+    double I_A = std::abs(h(0.5, 0.5, P0, x_c, y_c, w)) + noise_factor * noiseDistribution(generator);
+    double I_B = std::abs(h(-0.5, 0.5, P0, x_c, y_c, w)) + noise_factor * noiseDistribution(generator);
+    double I_C = std::abs(h(-0.5, -0.5, P0, x_c, y_c, w)) + noise_factor * noiseDistribution(generator);
+    double I_D = std::abs(h(0.5, -0.5, P0, x_c, y_c, w)) + noise_factor * noiseDistribution(generator);
+
+    Eigen::VectorXd intensities(4);
+    intensities << I_A, I_B, I_C, I_D;
+
+    return intensities;
 }
 
-double BeamSimulation::h_function(double x, double y, double X, double Y) {
-    return 2 * P0 / (M_PI * w * w) * std::exp(-2 * ((x - X) * (x - X) + (y - Y) * (y - Y)) / (w * w));
-}
-
-double BeamSimulation::randomNoise(double level) {
-    return level * distribution(generator);
+double BeamSimulation::getXc() const {
+    return x_c;
 }

@@ -229,6 +229,34 @@ CMakeFiles/AUKFProject.dir/src/MainWindow.cpp.o: \
  /usr/include/qt/QtWidgets/qsizepolicy.h /usr/include/qt/QtGui/qcursor.h \
  /usr/include/qt/QtGui/qkeysequence.h \
  /usr/include/qt/QtWidgets/qtabwidget.h /usr/include/qt/QtGui/qicon.h \
+ /usr/include/qwt/qwt_plot.h /usr/include/qwt/qwt_global.h \
+ /usr/include/qt/QtCore/qglobal.h /usr/include/qwt/qwt_axis_id.h \
+ /usr/include/qwt/qwt_axis.h /usr/include/qwt/qwt_plot_dict.h \
+ /usr/include/qwt/qwt_plot_item.h /usr/include/qt/QtCore/qmetatype.h \
+ /usr/include/qt/QtCore/qlist.h /usr/include/qt/QtWidgets/qframe.h \
+ /usr/include/qwt/qwt_plot_curve.h /usr/include/qwt/qwt_plot_seriesitem.h \
+ /usr/include/qwt/qwt_series_store.h /usr/include/qwt/qwt_series_data.h \
+ /usr/include/qwt/qwt_samples.h /usr/include/qwt/qwt_interval.h \
+ /usr/include/qt/QtCore/qvector.h /usr/include/qt/QtCore/qrect.h \
+ /usr/include/qwt/qwt_point_3d.h /usr/include/qt/QtCore/qpoint.h \
+ /usr/include/qt/QtCore/qstring.h /usr/include/qt/QtCore/QTimer \
+ /usr/include/qt/QtCore/qtimer.h /usr/include/qt/QtCore/qbasictimer.h \
+ /usr/include/qt/QtWidgets/QLineEdit \
+ /usr/include/qt/QtWidgets/qlineedit.h /usr/include/qt/QtWidgets/qframe.h \
+ /usr/include/qt/QtGui/qtextcursor.h /usr/include/qt/QtGui/qtextformat.h \
+ /usr/include/qt/QtCore/qvariant.h /usr/include/qt/QtCore/qmap.h \
+ /usr/include/qt/QtGui/qpen.h /usr/include/qt/QtGui/qtextoption.h \
+ /usr/include/qt/QtWidgets/QLabel /usr/include/qt/QtWidgets/qlabel.h \
+ /usr/include/qt/QtWidgets/QPushButton \
+ /usr/include/qt/QtWidgets/qpushbutton.h \
+ /usr/include/qt/QtWidgets/qabstractbutton.h \
+ /usr/include/qt/QtWidgets/QVBoxLayout \
+ /usr/include/qt/QtWidgets/qboxlayout.h \
+ /usr/include/qt/QtWidgets/qlayout.h \
+ /usr/include/qt/QtWidgets/qlayoutitem.h \
+ /usr/include/qt/QtWidgets/qboxlayout.h \
+ /usr/include/qt/QtWidgets/qgridlayout.h \
+ /usr/include/qt/QtWidgets/QHBoxLayout \
  /home/aleff/Рабочий\ стол/progekts/AUKF/AUKF/src/AdaptiveUnscentedKalmanFilter.h \
  /usr/include/eigen3/Eigen/Dense /usr/include/eigen3/Eigen/Core \
  /usr/include/eigen3/Eigen/src/Core/util/DisableStupidWarnings.h \
@@ -446,28 +474,25 @@ CMakeFiles/AUKFProject.dir/src/MainWindow.cpp.o: \
  /home/aleff/Рабочий\ стол/progekts/AUKF/AUKF/src/BeamSimulation.h \
  /usr/include/c++/14.2.1/random /usr/include/c++/14.2.1/bits/random.h \
  /usr/include/c++/14.2.1/x86_64-pc-linux-gnu/bits/opt_random.h \
- /usr/include/c++/14.2.1/bits/random.tcc /usr/include/qwt/qwt_plot.h \
- /usr/include/qwt/qwt_global.h /usr/include/qt/QtCore/qglobal.h \
- /usr/include/qwt/qwt_axis_id.h /usr/include/qwt/qwt_axis.h \
- /usr/include/qwt/qwt_plot_dict.h /usr/include/qwt/qwt_plot_item.h \
- /usr/include/qt/QtCore/qmetatype.h /usr/include/qt/QtCore/qlist.h \
- /usr/include/qt/QtWidgets/qframe.h /usr/include/qwt/qwt_plot_curve.h \
- /usr/include/qwt/qwt_plot_seriesitem.h \
- /usr/include/qwt/qwt_series_store.h /usr/include/qwt/qwt_series_data.h \
- /usr/include/qwt/qwt_samples.h /usr/include/qwt/qwt_interval.h \
- /usr/include/qt/QtCore/qvector.h /usr/include/qt/QtCore/qrect.h \
- /usr/include/qwt/qwt_point_3d.h /usr/include/qt/QtCore/qpoint.h \
- /usr/include/qt/QtCore/qstring.h /usr/include/qt/QtCore/QTimer \
- /usr/include/qt/QtCore/qtimer.h /usr/include/qt/QtCore/qbasictimer.h \
- /usr/include/qt/QtCore/QVector /usr/include/qt/QtCore/qvector.h \
- /usr/include/qwt/qwt_text.h /usr/include/qt/QtWidgets/QVBoxLayout \
- /usr/include/qt/QtWidgets/qboxlayout.h \
- /usr/include/qt/QtWidgets/qlayout.h \
- /usr/include/qt/QtWidgets/qlayoutitem.h \
- /usr/include/qt/QtWidgets/qboxlayout.h \
+ /usr/include/c++/14.2.1/bits/random.tcc \
+ /usr/include/qt/QtWidgets/QGridLayout \
  /usr/include/qt/QtWidgets/qgridlayout.h \
- /usr/include/qt/QtWidgets/QPushButton \
- /usr/include/qt/QtWidgets/qpushbutton.h \
- /usr/include/qt/QtWidgets/qabstractbutton.h \
- /usr/include/qt/QtWidgets/QHBoxLayout /usr/include/qt/QtWidgets/QLabel \
- /usr/include/qt/QtWidgets/qlabel.h /usr/include/qt/QtWidgets/qframe.h
+ /usr/include/qt/QtWidgets/QGroupBox \
+ /usr/include/qt/QtWidgets/qgroupbox.h \
+ /usr/include/qt/QtGui/QDoubleValidator \
+ /usr/include/qt/QtGui/qvalidator.h \
+ /usr/include/qt/QtCore/qregularexpression.h \
+ /usr/include/qt/QtCore/qlocale.h /usr/include/qt/QtWidgets/QMessageBox \
+ /usr/include/qt/QtWidgets/qmessagebox.h \
+ /usr/include/qt/QtWidgets/qdialog.h \
+ /usr/include/qt/QtGui/QGuiApplication \
+ /usr/include/qt/QtGui/qguiapplication.h \
+ /usr/include/qt/QtCore/qcoreapplication.h \
+ /usr/include/qt/QtCore/qcoreevent.h /usr/include/qt/QtCore/qeventloop.h \
+ /usr/include/qt/QtGui/qinputmethod.h /usr/include/qt/QtGui/QScreen \
+ /usr/include/qt/QtGui/qscreen.h /usr/include/qt/QtCore/QList \
+ /usr/include/qt/QtCore/qlist.h /usr/include/qt/QtCore/QObject \
+ /usr/include/qt/QtCore/qobject.h /usr/include/qt/QtCore/QRect \
+ /usr/include/qt/QtCore/qrect.h /usr/include/qt/QtCore/QSize \
+ /usr/include/qt/QtCore/qsize.h /usr/include/qt/QtCore/QSizeF \
+ /usr/include/qt/QtGui/QTransform /usr/include/qt/QtGui/qtransform.h

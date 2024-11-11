@@ -1,175 +1,334 @@
-// MainWindow.cpp
-
 #include "MainWindow.h"
 #include <QVBoxLayout>
-#include <QPushButton>
 #include <QHBoxLayout>
-#include <QLabel>
-#include <qwt_plot.h>
-#include <qwt_text.h>
+#include <QGridLayout>
+#include <QGroupBox>
+#include <QDoubleValidator>
+#include <QMessageBox>
+#include <QGuiApplication>
+#include <QScreen>
 
 
-MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), currentTime(0) {
-    // Инициализация фильтра и симуляции
-    int n_x = 2; // Размерность состояния (координаты x и y)
-    int n_z = 4; // Размерность измерения (4 интенсивности)
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent),
+      alpha(0.007),
+      beta(1.0),
+      kappa(3.0),
+      processNoise(1e-5),
+      measurementNoise(1e-2),
+      noiseLevel(0.3),
+      currentTime(0.0),
+      timeStep(0.001),
+      iteration(0),
+      isRunning(false)
+{
+    // Инициализация фильтра и симуляции перенесена в startSimulation()
+    setupUI();
+    setupPlots();
+    initializeCurves();
 
-    Eigen::VectorXd initial_state(n_x);
-    initial_state << 0.0, 0.0;
-    Eigen::MatrixXd initial_covariance = Eigen::MatrixXd::Identity(n_x, n_x) * 1.0;
-    Eigen::MatrixXd process_noise_cov = Eigen::MatrixXd::Identity(n_x, n_x) * 0.01;
-    Eigen::MatrixXd measurement_noise_cov = Eigen::MatrixXd::Identity(n_z, n_z) * 0.1;
+    updateTimer = new QTimer(this);
+    connect(updateTimer, &QTimer::timeout, this, &MainWindow::updatePlots);
 
-    // Определение функций перехода и измерения
-    AdaptiveUnscentedKalmanFilter::StateTransitionFunction f = [](const Eigen::VectorXd& x) {
-        return x; // Предполагаем, что состояние не меняется (постоянная скорость)
-    };
+     // Установка фиксированного или адаптивного размера окна
+    setMinimumSize(800, 600);  // Минимальный размер, чтобы окно не становилось слишком маленьким
 
-    AdaptiveUnscentedKalmanFilter::MeasurementFunction h = [](const Eigen::VectorXd& x) {
-        double P0 = 1.0;
-        double w = 1.0;
+    // Получаем размер экрана и масштабируем окно
+    QScreen *screen = QGuiApplication::primaryScreen();
+    QRect screenGeometry = screen->geometry();
+    int height = screenGeometry.height();
+    int width = screenGeometry.width();
 
-        double x_c = x(0);
-        double y_c = x(1);
+    // Ограничиваем размер окна 80% от размера экрана
+    resize(width * 0.8, height * 0.8);
+}
 
-        double I_A = 2 * P0 / (M_PI * w * w) * std::exp(-2 * ((1 - x_c) * (1 - x_c) + (1 - y_c) * (1 - y_c)) / (w * w));
-        double I_B = 2 * P0 / (M_PI * w * w) * std::exp(-2 * ((-1 - x_c) * (-1 - x_c) + (1 - y_c) * (1 - y_c)) / (w * w));
-        double I_C = 2 * P0 / (M_PI * w * w) * std::exp(-2 * ((-1 - x_c) * (-1 - x_c) + (-1 - y_c) * (-1 - y_c)) / (w * w));
-        double I_D = 2 * P0 / (M_PI * w * w) * std::exp(-2 * ((1 - x_c) * (1 - x_c) + (-1 - y_c) * (-1 - y_c)) / (w * w));
+void MainWindow::setupUI() {
+    QWidget *centralWidget = new QWidget(this);
+    QVBoxLayout *mainLayout = new QVBoxLayout(centralWidget);
 
-        Eigen::VectorXd z(4);
-        z << I_A, I_B, I_C, I_D;
-        return z;
-    };
+    // Группа для параметров фильтра
+    QGroupBox *filterGroupBox = new QGroupBox("Параметры фильтра");
+    QGridLayout *filterLayout = new QGridLayout();
 
-    filter = std::make_unique<AdaptiveUnscentedKalmanFilter>(
-        initial_state,
-        initial_covariance,
-        process_noise_cov,
-        measurement_noise_cov,
-        f,
-        h
-    );
+    alphaEdit = new QLineEdit(QString::number(alpha));
+    betaEdit = new QLineEdit(QString::number(beta));
+    kappaEdit = new QLineEdit(QString::number(kappa));
+    processNoiseEdit = new QLineEdit(QString::number(processNoise));
+    measurementNoiseEdit = new QLineEdit(QString::number(measurementNoise));
 
-    simulation = std::make_unique<BeamSimulation>(1.0, 1.0, -1.0, 0.0);
+    QDoubleValidator *validator = new QDoubleValidator(this);
+    validator->setLocale(QLocale::C);
 
-    // Создание интерфейса
-    QWidget *centralWidget = new QWidget();
-    QVBoxLayout *mainLayout = new QVBoxLayout();
+    alphaEdit->setValidator(validator);
+    betaEdit->setValidator(validator);
+    kappaEdit->setValidator(validator);
+    processNoiseEdit->setValidator(validator);
+    measurementNoiseEdit->setValidator(validator);
+
+    filterLayout->addWidget(new QLabel("Alpha:"), 0, 0);
+    filterLayout->addWidget(alphaEdit, 0, 1);
+    filterLayout->addWidget(new QLabel("Beta:"), 1, 0);
+    filterLayout->addWidget(betaEdit, 1, 1);
+    filterLayout->addWidget(new QLabel("Kappa:"), 2, 0);
+    filterLayout->addWidget(kappaEdit, 2, 1);
+    filterLayout->addWidget(new QLabel("Process Noise:"), 3, 0);
+    filterLayout->addWidget(processNoiseEdit, 3, 1);
+    filterLayout->addWidget(new QLabel("Measurement Noise:"), 4, 0);
+    filterLayout->addWidget(measurementNoiseEdit, 4, 1);
+
+    filterGroupBox->setLayout(filterLayout);
+
+    // Группа для параметров симуляции
+    QGroupBox *simulationGroupBox = new QGroupBox("Параметры симуляции");
+    QGridLayout *simulationLayout = new QGridLayout();
+
+    noiseLevelEdit = new QLineEdit(QString::number(noiseLevel));
+    noiseLevelEdit->setValidator(validator);
+
+    simulationLayout->addWidget(new QLabel("Noise Level:"), 0, 0);
+    simulationLayout->addWidget(noiseLevelEdit, 0, 1);
+
+    simulationGroupBox->setLayout(simulationLayout);
 
     // Кнопки управления
-    QHBoxLayout *buttonLayout = new QHBoxLayout();
-    QPushButton *startButton = new QPushButton("Start Simulation");
-    QPushButton *stopButton = new QPushButton("Stop Simulation");
+    startButton = new QPushButton("Старт");
+    stopButton = new QPushButton("Стоп");
+    stopButton->setEnabled(false);
 
     connect(startButton, &QPushButton::clicked, this, &MainWindow::startSimulation);
     connect(stopButton, &QPushButton::clicked, this, &MainWindow::stopSimulation);
 
+    // Размещение кнопок
+    QHBoxLayout *buttonLayout = new QHBoxLayout();
     buttonLayout->addWidget(startButton);
     buttonLayout->addWidget(stopButton);
 
+    // Связываем изменения параметров с функцией onParametersChanged
+    connect(alphaEdit, &QLineEdit::editingFinished, this, &MainWindow::onParametersChanged);
+    connect(betaEdit, &QLineEdit::editingFinished, this, &MainWindow::onParametersChanged);
+    connect(kappaEdit, &QLineEdit::editingFinished, this, &MainWindow::onParametersChanged);
+    connect(processNoiseEdit, &QLineEdit::editingFinished, this, &MainWindow::onParametersChanged);
+    connect(measurementNoiseEdit, &QLineEdit::editingFinished, this, &MainWindow::onParametersChanged);
+    connect(noiseLevelEdit, &QLineEdit::editingFinished, this, &MainWindow::onParametersChanged);
+
+    // Размещение графиков
+    rawIntensityPlot = new QwtPlot(this);
+    rawIntensityPlot->setTitle("Нефильтрованные интенсивности");
+    rawIntensityPlot->setAxisTitle(QwtPlot::xBottom, "Время");
+    rawIntensityPlot->setAxisTitle(QwtPlot::yLeft, "Интенсивность");
+
+    filteredIntensityPlot = new QwtPlot(this);
+    filteredIntensityPlot->setTitle("Фильтрованные интенсивности");
+    filteredIntensityPlot->setAxisTitle(QwtPlot::xBottom, "Время");
+    filteredIntensityPlot->setAxisTitle(QwtPlot::yLeft, "Интенсивность");
+
+    estimatedCoordinatePlot = new QwtPlot(this);
+    estimatedCoordinatePlot->setTitle("Координаты (фильтрованные)");
+    estimatedCoordinatePlot->setAxisTitle(QwtPlot::xBottom, "Время");
+    estimatedCoordinatePlot->setAxisTitle(QwtPlot::yLeft, "Координаты");
+
+    trueCoordinatePlot = new QwtPlot(this);
+    trueCoordinatePlot->setTitle("Исходные координаты");
+    trueCoordinatePlot->setAxisTitle(QwtPlot::xBottom, "Время");
+    trueCoordinatePlot->setAxisTitle(QwtPlot::yLeft, "Координаты");
+
+    // Размещение графиков в сетке
+    QGridLayout *plotsLayout = new QGridLayout();
+    plotsLayout->addWidget(rawIntensityPlot, 0, 0);
+    plotsLayout->addWidget(filteredIntensityPlot, 0, 1);
+    plotsLayout->addWidget(estimatedCoordinatePlot, 1, 0);
+    plotsLayout->addWidget(trueCoordinatePlot, 1, 1);
+
+    // Добавляем все элементы в основной лейаут
+    mainLayout->addWidget(filterGroupBox);
+    mainLayout->addWidget(simulationGroupBox);
     mainLayout->addLayout(buttonLayout);
+    mainLayout->addLayout(plotsLayout);
 
-    // Создание графиков
-    intensityPlot = new QwtPlot(QwtText("Quadrant Intensities"));
-    intensityPlot->setAxisTitle(QwtPlot::xBottom, "Time");
-    intensityPlot->setAxisTitle(QwtPlot::yLeft, "Intensity");
-
-    curveIA = new QwtPlotCurve("I_A");
-    curveIB = new QwtPlotCurve("I_B");
-    curveIC = new QwtPlotCurve("I_C");
-    curveID = new QwtPlotCurve("I_D");
-
-    curveIA->setPen(Qt::red);
-    curveIB->setPen(Qt::green);
-    curveIC->setPen(Qt::blue);
-    curveID->setPen(Qt::magenta);
-
-    curveIA->attach(intensityPlot);
-    curveIB->attach(intensityPlot);
-    curveIC->attach(intensityPlot);
-    curveID->attach(intensityPlot);
-
-    coordinatePlot = new QwtPlot(QwtText("Beam Position"));
-    coordinatePlot->setAxisTitle(QwtPlot::xBottom, "Time");
-    coordinatePlot->setAxisTitle(QwtPlot::yLeft, "X Coordinate");
-
-    curveRealX = new QwtPlotCurve("Real X");
-    curveEstimatedX = new QwtPlotCurve("Estimated X");
-
-    curveRealX->setPen(Qt::blue);
-    curveEstimatedX->setPen(Qt::red);
-
-    curveRealX->attach(coordinatePlot);
-    curveEstimatedX->attach(coordinatePlot);
-
-    mainLayout->addWidget(intensityPlot);
-    mainLayout->addWidget(coordinatePlot);
-
-    centralWidget->setLayout(mainLayout);
     setCentralWidget(centralWidget);
+}
 
-    // Таймер для обновления
-    timer = new QTimer(this);
-    connect(timer, &QTimer::timeout, this, &MainWindow::updatePlots);
+void MainWindow::setupPlots() {
+    // Инициализация кривых интенсивностей
+    for (int i = 0; i < 4; ++i) {
+        // Нефильтрованные интенсивности
+        rawIntensityCurves[i] = new QwtPlotCurve(QString("Raw I%1").arg(i + 1));
+        rawIntensityCurves[i]->attach(rawIntensityPlot);
+        rawIntensityCurves[i]->setPen(QPen(Qt::red));
+
+        // Фильтрованные интенсивности
+        filteredIntensityCurves[i] = new QwtPlotCurve(QString("Filtered I%1").arg(i + 1));
+        filteredIntensityCurves[i]->attach(filteredIntensityPlot);
+        filteredIntensityCurves[i]->setPen(QPen(Qt::blue));
+    }
+
+    // Инициализация кривых координат
+    estimatedPositionCurveX = new QwtPlotCurve("Estimated X");
+    estimatedPositionCurveX->attach(estimatedCoordinatePlot);
+    estimatedPositionCurveX->setPen(QPen(Qt::red));
+
+    estimatedPositionCurveY = new QwtPlotCurve("Estimated Y");
+    estimatedPositionCurveY->attach(estimatedCoordinatePlot);
+    estimatedPositionCurveY->setPen(QPen(Qt::blue));
+
+    truePositionCurveX = new QwtPlotCurve("True X");
+    truePositionCurveX->attach(trueCoordinatePlot);
+    truePositionCurveX->setPen(QPen(Qt::green));
+
+    truePositionCurveY = new QwtPlotCurve("True Y");
+    truePositionCurveY->attach(trueCoordinatePlot);
+    truePositionCurveY->setPen(QPen(Qt::magenta));
+}
+
+void MainWindow::initializeCurves() {
+    timeData.clear();
+    for (int i = 0; i < 4; ++i) {
+        rawIntensityData[i].clear();
+        filteredIntensityData[i].clear();
+    }
+    estimatedXData.clear();
+    estimatedYData.clear();
+    trueXData.clear();
+    trueYData.clear();
 }
 
 void MainWindow::startSimulation() {
-    timer->start(50); // Обновление каждые 50 мс
+    if (isRunning) {
+        QMessageBox::warning(this, "Ошибка", "Симуляция уже запущена.");
+        return;
+    }
+
+    // Блокируем изменение параметров
+    alphaEdit->setEnabled(false);
+    betaEdit->setEnabled(false);
+    kappaEdit->setEnabled(false);
+    processNoiseEdit->setEnabled(false);
+    measurementNoiseEdit->setEnabled(false);
+    noiseLevelEdit->setEnabled(false);
+
+    // Обновляем параметры
+    onParametersChanged();
+
+    // Инициализация фильтра и симуляции
+    Eigen::VectorXd initial_state(4);
+    initial_state << 0.0, 0.0, 0.0, 0.0;
+    Eigen::MatrixXd initial_covariance = Eigen::MatrixXd::Identity(4, 4) * 1.0;
+    Eigen::MatrixXd process_noise_cov = Eigen::MatrixXd::Identity(4, 4) * processNoise;
+    Eigen::MatrixXd measurement_noise_cov = Eigen::MatrixXd::Identity(4, 4) * measurementNoise;
+
+    kalmanFilter = new AdaptiveUnscentedKalmanFilter(initial_state, initial_covariance, process_noise_cov, measurement_noise_cov);
+    kalmanFilter->setParameters(alpha, beta, kappa);
+
+    beamSimulation = new BeamSimulation();
+    beamSimulation->setNoiseLevel(noiseLevel);
+
+    currentTime = 0.0;
+    iteration = 0;
+    initializeCurves();
+
+    isRunning = true;
+    startButton->setEnabled(false);
+    stopButton->setEnabled(true);
+
+    updateTimer->start(10); // Запускаем таймер
 }
 
 void MainWindow::stopSimulation() {
-    timer->stop();
+    if (!isRunning) {
+        QMessageBox::warning(this, "Ошибка", "Симуляция не запущена.");
+        return;
+    }
+
+    isRunning = false;
+    updateTimer->stop();
+
+    // Разблокируем изменение параметров
+    alphaEdit->setEnabled(true);
+    betaEdit->setEnabled(true);
+    kappaEdit->setEnabled(true);
+    processNoiseEdit->setEnabled(true);
+    measurementNoiseEdit->setEnabled(true);
+    noiseLevelEdit->setEnabled(true);
+
+    startButton->setEnabled(true);
+    stopButton->setEnabled(false);
 }
 
 void MainWindow::updatePlots() {
-    // Генерация измерений
-    Eigen::VectorXd measurement = simulation->generateMeasurement(currentTime);
-
-    // Применение фильтра
-    filter->predict();
-    filter->update(measurement);
-
-    // Получение данных
-    Eigen::VectorXd state = filter->getState();
-
-    // Обновление данных для графиков
-    timeData.append(currentTime);
-
-    IAData.append(measurement(0));
-    IBData.append(measurement(1));
-    ICData.append(measurement(2));
-    IDData.append(measurement(3));
-
-    double realX = simulation->getXc();
-    double estimatedX = state(0);
-
-    realXData.append(realX);
-    estimatedXData.append(estimatedX);
-
-    // Ограничение размера данных
-    const int maxPoints = 1000;
-    if (timeData.size() > maxPoints) {
-        timeData.remove(0);
-        IAData.remove(0);
-        IBData.remove(0);
-        ICData.remove(0);
-        IDData.remove(0);
-        realXData.remove(0);
-        estimatedXData.remove(0);
+    if (!isRunning) {
+        return;
     }
 
-    // Обновление графиков
-    curveIA->setSamples(timeData, IAData);
-    curveIB->setSamples(timeData, IBData);
-    curveIC->setSamples(timeData, ICData);
-    curveID->setSamples(timeData, IDData);
+    currentTime += timeStep;
+    timeData.append(currentTime);
 
-    curveRealX->setSamples(timeData, realXData);
-    curveEstimatedX->setSamples(timeData, estimatedXData);
+    // Получение зашумленных интенсивностей
+    Eigen::VectorXd measurement = beamSimulation->moveBeamAndIntegrate(1.0, 1.0, 0.0, iteration);
 
-    intensityPlot->replot();
-    coordinatePlot->replot();
+    // Обновление фильтра
+    kalmanFilter->predict();
+    kalmanFilter->update(measurement);
 
-    currentTime++;
+    // Сохранение данных интенсивностей
+    for (int i = 0; i < 4; ++i) {
+        rawIntensityData[i].append(measurement(i));
+        filteredIntensityData[i].append(kalmanFilter->getState()(i));
+    }
+
+    // Обновление кривых интенсивностей
+    for (int i = 0; i < 4; ++i) {
+        rawIntensityCurves[i]->setSamples(timeData, rawIntensityData[i]);
+        filteredIntensityCurves[i]->setSamples(timeData, filteredIntensityData[i]);
+    }
+
+    // Получение истинных координат
+    double trueX = beamSimulation->getXc();
+    double trueY = 0.0; // y_c = 0.0 в симуляции
+    trueXData.append(trueX);
+    trueYData.append(trueY);
+
+    // Вычисление координат на основе зафильтрованных состояний
+    double I_A = kalmanFilter->getState()(0);
+    double I_B = kalmanFilter->getState()(1);
+    double I_C = kalmanFilter->getState()(2);
+    double I_D = kalmanFilter->getState()(3);
+
+    Eigen::Vector2d spot_position = kalmanFilter->calculateSpotPosition(I_A, I_B, I_C, I_D, 1.0, 1.0);
+    double estimatedX = spot_position(0);
+    double estimatedY = spot_position(1);
+    estimatedXData.append(estimatedX);
+    estimatedYData.append(estimatedY);
+
+    // Обновление кривых координат
+    estimatedPositionCurveX->setSamples(timeData, estimatedXData);
+    estimatedPositionCurveY->setSamples(timeData, estimatedYData);
+
+    truePositionCurveX->setSamples(timeData, trueXData);
+    truePositionCurveY->setSamples(timeData, trueYData);
+
+    // Перерисовка графиков
+    rawIntensityPlot->replot();
+    filteredIntensityPlot->replot();
+    estimatedCoordinatePlot->replot();
+    trueCoordinatePlot->replot();
+
+    iteration++;
 }
+
+void MainWindow::onParametersChanged() {
+    if (isRunning) {
+        return;
+    }
+
+    // Обновление параметров на основе значений из UI
+    alpha = alphaEdit->text().toDouble();
+    beta = betaEdit->text().toDouble();
+    kappa = kappaEdit->text().toDouble();
+    processNoise = processNoiseEdit->text().toDouble();
+    measurementNoise = measurementNoiseEdit->text().toDouble();
+    noiseLevel = noiseLevelEdit->text().toDouble();
+}
+
+
+
