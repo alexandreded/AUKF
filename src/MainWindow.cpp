@@ -22,7 +22,7 @@ MainWindow::MainWindow(QWidget *parent)
       iteration(0),
       isRunning(false)
 {
-    // Инициализация фильтра и симуляции перенесена в startSimulation()
+    // Инициализация фильтра и симуляции перенес в startSimulation(), проверить на ошибки 
     setupUI();
     setupPlots();
     initializeCurves();
@@ -30,16 +30,16 @@ MainWindow::MainWindow(QWidget *parent)
     updateTimer = new QTimer(this);
     connect(updateTimer, &QTimer::timeout, this, &MainWindow::updatePlots);
 
-     // Установка фиксированного или адаптивного размера окна
-    setMinimumSize(800, 600);  // Минимальный размер, чтобы окно не становилось слишком маленьким
+     // Установка фиксированного размера окна, переделать нормально
+    setMinimumSize(800, 600);  // Минимальный размер?
 
-    // Получаем размер экрана и масштабируем окно
+    // масштабируем окно
     QScreen *screen = QGuiApplication::primaryScreen();
     QRect screenGeometry = screen->geometry();
     int height = screenGeometry.height();
     int width = screenGeometry.width();
 
-    // Ограничиваем размер окна 80% от размера экрана
+    // размер окна 80% от размера экрана
     resize(width * 0.8, height * 0.8);
 }
 
@@ -91,7 +91,7 @@ void MainWindow::setupUI() {
 
     simulationGroupBox->setLayout(simulationLayout);
 
-    // Кнопки управления
+    // Кнопки управления, добавить кнопки для отображения конкретных графиков
     startButton = new QPushButton("Старт");
     stopButton = new QPushButton("Стоп");
     stopButton->setEnabled(false);
@@ -99,7 +99,7 @@ void MainWindow::setupUI() {
     connect(startButton, &QPushButton::clicked, this, &MainWindow::startSimulation);
     connect(stopButton, &QPushButton::clicked, this, &MainWindow::stopSimulation);
 
-    // Размещение кнопок
+    // Размещение кнопок, доделать
     QHBoxLayout *buttonLayout = new QHBoxLayout();
     buttonLayout->addWidget(startButton);
     buttonLayout->addWidget(stopButton);
@@ -112,7 +112,7 @@ void MainWindow::setupUI() {
     connect(measurementNoiseEdit, &QLineEdit::editingFinished, this, &MainWindow::onParametersChanged);
     connect(noiseLevelEdit, &QLineEdit::editingFinished, this, &MainWindow::onParametersChanged);
 
-    // Размещение графиков
+    // Размещение графиков, сделать нормальный маштаб
     rawIntensityPlot = new QwtPlot(this);
     rawIntensityPlot->setTitle("Нефильтрованные интенсивности");
     rawIntensityPlot->setAxisTitle(QwtPlot::xBottom, "Время");
@@ -133,7 +133,7 @@ void MainWindow::setupUI() {
     trueCoordinatePlot->setAxisTitle(QwtPlot::xBottom, "Время");
     trueCoordinatePlot->setAxisTitle(QwtPlot::yLeft, "Координаты");
 
-    // Размещение графиков в сетке
+    // Размещение графиков в сетке, маштаб
     QGridLayout *plotsLayout = new QGridLayout();
     plotsLayout->addWidget(rawIntensityPlot, 0, 0);
     plotsLayout->addWidget(filteredIntensityPlot, 0, 1);
@@ -207,7 +207,7 @@ void MainWindow::startSimulation() {
     measurementNoiseEdit->setEnabled(false);
     noiseLevelEdit->setEnabled(false);
 
-    // Обновляем параметры
+    // Обновляем
     onParametersChanged();
 
     // Инициализация фильтра и симуляции
