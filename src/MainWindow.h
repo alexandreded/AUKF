@@ -54,8 +54,8 @@ private:
     QwtPlot *trueCoordinatePlot;          // График истинных координат
 
     // Кривые интенсивностей
-    QwtPlotCurve *rawIntensityCurves[4];   // Кривые для 4 источников необработанных интенсивностей
-    QwtPlotCurve *filteredIntensityCurves[4]; // Кривые для 4 источников фильтрованных интенсивностей
+    QwtPlotCurve *rawIntensityCurves[4];   // Кривые для 4 источников необработанных интенсивностей, переделать
+    QwtPlotCurve *filteredIntensityCurves[4]; // Кривые для 4 источников фильтрованных интенсивностей, переделать
 
     // Кривые координат
     QwtPlotCurve *estimatedPositionCurveX; // Кривая для X координаты (оценка)
