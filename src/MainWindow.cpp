@@ -8,7 +8,6 @@
 #include <QGuiApplication>
 #include <QScreen>
 
-
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
       alpha(0.007),
@@ -22,7 +21,6 @@ MainWindow::MainWindow(QWidget *parent)
       iteration(0),
       isRunning(false)
 {
-    // Инициализация фильтра и симуляции перенесена в startSimulation()
     setupUI();
     setupPlots();
     initializeCurves();
@@ -30,16 +28,14 @@ MainWindow::MainWindow(QWidget *parent)
     updateTimer = new QTimer(this);
     connect(updateTimer, &QTimer::timeout, this, &MainWindow::updatePlots);
 
-     // Установка фиксированного или адаптивного размера окна
-    setMinimumSize(800, 600);  // Минимальный размер, чтобы окно не становилось слишком маленьким
+    // Установка минимального размера окна
+    setMinimumSize(800, 600);
 
-    // Получаем размер экрана и масштабируем окно
+    // Масштабирование окна до 80% от размера экрана
     QScreen *screen = QGuiApplication::primaryScreen();
     QRect screenGeometry = screen->geometry();
     int height = screenGeometry.height();
     int width = screenGeometry.width();
-
-    // Ограничиваем размер окна 80% от размера экрана
     resize(width * 0.8, height * 0.8);
 }
 
@@ -112,6 +108,23 @@ void MainWindow::setupUI() {
     connect(measurementNoiseEdit, &QLineEdit::editingFinished, this, &MainWindow::onParametersChanged);
     connect(noiseLevelEdit, &QLineEdit::editingFinished, this, &MainWindow::onParametersChanged);
 
+    // Чекбоксы для управления отображением интенсивностей
+    QGroupBox *intensityGroupBox = new QGroupBox("Отображение интенсивностей");
+    QHBoxLayout *intensityLayout = new QHBoxLayout();
+
+    QString labels[4] = {"I1", "I2", "I3", "I4"};
+    for (int i = 0; i < 4; ++i) {
+        intensityCheckBoxes[i] = new QCheckBox(labels[i]);
+        intensityCheckBoxes[i]->setChecked(true);
+        intensityLayout->addWidget(intensityCheckBoxes[i]);
+        int index = i; // Захватываем переменную для использования в лямбда-функции
+        connect(intensityCheckBoxes[i], &QCheckBox::toggled, [this, index](bool checked) {
+            onIntensityCurveToggled(index, checked);
+        });
+    }
+
+    intensityGroupBox->setLayout(intensityLayout);
+
     // Размещение графиков
     rawIntensityPlot = new QwtPlot(this);
     rawIntensityPlot->setTitle("Нефильтрованные интенсивности");
@@ -144,6 +157,7 @@ void MainWindow::setupUI() {
     mainLayout->addWidget(filterGroupBox);
     mainLayout->addWidget(simulationGroupBox);
     mainLayout->addLayout(buttonLayout);
+    mainLayout->addWidget(intensityGroupBox); // Добавлено
     mainLayout->addLayout(plotsLayout);
 
     setCentralWidget(centralWidget);
@@ -151,16 +165,17 @@ void MainWindow::setupUI() {
 
 void MainWindow::setupPlots() {
     // Инициализация кривых интенсивностей
+    QColor colors[4] = {Qt::red, Qt::blue, Qt::green, Qt::magenta};
     for (int i = 0; i < 4; ++i) {
         // Нефильтрованные интенсивности
         rawIntensityCurves[i] = new QwtPlotCurve(QString("Raw I%1").arg(i + 1));
         rawIntensityCurves[i]->attach(rawIntensityPlot);
-        rawIntensityCurves[i]->setPen(QPen(Qt::red));
+        rawIntensityCurves[i]->setPen(QPen(colors[i]));
 
         // Фильтрованные интенсивности
         filteredIntensityCurves[i] = new QwtPlotCurve(QString("Filtered I%1").arg(i + 1));
         filteredIntensityCurves[i]->attach(filteredIntensityPlot);
-        filteredIntensityCurves[i]->setPen(QPen(Qt::blue));
+        filteredIntensityCurves[i]->setPen(QPen(colors[i]));
     }
 
     // Инициализация кривых координат
@@ -207,6 +222,11 @@ void MainWindow::startSimulation() {
     measurementNoiseEdit->setEnabled(false);
     noiseLevelEdit->setEnabled(false);
 
+    // Блокируем чекбоксы
+    for (int i = 0; i < 4; ++i) {
+        intensityCheckBoxes[i]->setEnabled(false);
+    }
+
     // Обновляем параметры
     onParametersChanged();
 
@@ -250,6 +270,11 @@ void MainWindow::stopSimulation() {
     processNoiseEdit->setEnabled(true);
     measurementNoiseEdit->setEnabled(true);
     noiseLevelEdit->setEnabled(true);
+
+    // Разблокируем чекбоксы
+    for (int i = 0; i < 4; ++i) {
+        intensityCheckBoxes[i]->setEnabled(true);
+    }
 
     startButton->setEnabled(true);
     stopButton->setEnabled(false);
@@ -307,6 +332,34 @@ void MainWindow::updatePlots() {
     truePositionCurveX->setSamples(timeData, trueXData);
     truePositionCurveY->setSamples(timeData, trueYData);
 
+    // Автоматическое масштабирование осей для estimatedCoordinatePlot
+    {
+        double minY = std::numeric_limits<double>::max();
+        double maxY = std::numeric_limits<double>::lowest();
+        for (int i = 0; i < estimatedXData.size(); ++i) {
+            minY = std::min({minY, estimatedXData[i], estimatedYData[i]});
+            maxY = std::max({maxY, estimatedXData[i], estimatedYData[i]});
+        }
+        // Добавляем небольшой отступ
+        double marginY = (maxY - minY) * 0.1;
+        if (marginY == 0) marginY = 1.0; // Если данные константны
+        estimatedCoordinatePlot->setAxisScale(QwtPlot::yLeft, minY - marginY, maxY + marginY);
+    }
+
+    // Автоматическое масштабирование осей для trueCoordinatePlot
+    {
+        double minY = std::numeric_limits<double>::max();
+        double maxY = std::numeric_limits<double>::lowest();
+        for (int i = 0; i < trueXData.size(); ++i) {
+            minY = std::min({minY, trueXData[i], trueYData[i]});
+            maxY = std::max({maxY, trueXData[i], trueYData[i]});
+        }
+        // Добавляем небольшой отступ
+        double marginY = (maxY - minY) * 0.1;
+        if (marginY == 0) marginY = 1.0;
+        trueCoordinatePlot->setAxisScale(QwtPlot::yLeft, minY - marginY, maxY + marginY);
+    }
+
     // Перерисовка графиков
     rawIntensityPlot->replot();
     filteredIntensityPlot->replot();
@@ -330,5 +383,8 @@ void MainWindow::onParametersChanged() {
     noiseLevel = noiseLevelEdit->text().toDouble();
 }
 
-
+void MainWindow::onIntensityCurveToggled(int index, bool checked) {
+    rawIntensityCurves[index]->setVisible(checked);
+    filteredIntensityCurves[index]->setVisible(checked);
+}
 

@@ -255,6 +255,8 @@ CMakeFiles/AUKFProject.dir/src/main.cpp.o: \
  /usr/include/qt/QtWidgets/QPushButton \
  /usr/include/qt/QtWidgets/qpushbutton.h \
  /usr/include/qt/QtWidgets/qabstractbutton.h \
+ /usr/include/qt/QtWidgets/QCheckBox \
+ /usr/include/qt/QtWidgets/qcheckbox.h \
  /usr/include/qt/QtWidgets/QVBoxLayout \
  /usr/include/qt/QtWidgets/qboxlayout.h \
  /usr/include/qt/QtWidgets/qlayout.h \

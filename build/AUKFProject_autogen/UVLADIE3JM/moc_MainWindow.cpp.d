@@ -528,6 +528,7 @@
   /usr/include/qt/QtGui/qtguiglobal.h \
   /usr/include/qt/QtGui/qtransform.h \
   /usr/include/qt/QtGui/qwindowdefs.h \
+  /usr/include/qt/QtWidgets/QCheckBox \
   /usr/include/qt/QtWidgets/QHBoxLayout \
   /usr/include/qt/QtWidgets/QLabel \
   /usr/include/qt/QtWidgets/QLineEdit \
@@ -536,6 +537,7 @@
   /usr/include/qt/QtWidgets/QVBoxLayout \
   /usr/include/qt/QtWidgets/qabstractbutton.h \
   /usr/include/qt/QtWidgets/qboxlayout.h \
+  /usr/include/qt/QtWidgets/qcheckbox.h \
   /usr/include/qt/QtWidgets/qframe.h \
   /usr/include/qt/QtWidgets/qgridlayout.h \
   /usr/include/qt/QtWidgets/qlabel.h \
