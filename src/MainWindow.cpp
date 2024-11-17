@@ -7,12 +7,13 @@
 #include <QMessageBox>
 #include <QGuiApplication>
 #include <QScreen>
+#include <QDebug>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
-      alpha(0.007),
-      beta(1.0),
-      kappa(3.0),
+      alpha(1e-3),
+      beta(2.0),
+      kappa(0.0),
       processNoise(1e-5),
       measurementNoise(1e-2),
       noiseLevel(0.3),
@@ -87,7 +88,7 @@ void MainWindow::setupUI() {
 
     simulationGroupBox->setLayout(simulationLayout);
 
-    // Кнопки управления, добавить кнопки для отображения конкретных графиков
+    // Кнопки управления
     startButton = new QPushButton("Старт");
     stopButton = new QPushButton("Стоп");
     stopButton->setEnabled(false);
@@ -95,7 +96,7 @@ void MainWindow::setupUI() {
     connect(startButton, &QPushButton::clicked, this, &MainWindow::startSimulation);
     connect(stopButton, &QPushButton::clicked, this, &MainWindow::stopSimulation);
 
-    // Размещение кнопок, доделать
+    // Размещение кнопок
     QHBoxLayout *buttonLayout = new QHBoxLayout();
     buttonLayout->addWidget(startButton);
     buttonLayout->addWidget(stopButton);
@@ -146,7 +147,7 @@ void MainWindow::setupUI() {
     trueCoordinatePlot->setAxisTitle(QwtPlot::xBottom, "Время");
     trueCoordinatePlot->setAxisTitle(QwtPlot::yLeft, "Координаты");
 
-    // Размещение графиков в сетке, маштаб
+    // Размещение графиков в сетке
     QGridLayout *plotsLayout = new QGridLayout();
     plotsLayout->addWidget(rawIntensityPlot, 0, 0);
     plotsLayout->addWidget(filteredIntensityPlot, 0, 1);
@@ -157,7 +158,7 @@ void MainWindow::setupUI() {
     mainLayout->addWidget(filterGroupBox);
     mainLayout->addWidget(simulationGroupBox);
     mainLayout->addLayout(buttonLayout);
-    mainLayout->addWidget(intensityGroupBox); // Добавлено
+    mainLayout->addWidget(intensityGroupBox);
     mainLayout->addLayout(plotsLayout);
 
     setCentralWidget(centralWidget);
@@ -231,17 +232,21 @@ void MainWindow::startSimulation() {
     onParametersChanged();
 
     // Инициализация фильтра и симуляции
-    Eigen::VectorXd initial_state(4);
-    initial_state << 0.0, 0.0, 0.0, 0.0;
-    Eigen::MatrixXd initial_covariance = Eigen::MatrixXd::Identity(4, 4) * 1.0;
-    Eigen::MatrixXd process_noise_cov = Eigen::MatrixXd::Identity(4, 4) * processNoise;
+    beamSimulation = new BeamSimulation();
+    beamSimulation->setNoiseLevel(noiseLevel);
+
+    // Получаем первое измерение для инициализации состояния
+    Eigen::VectorXd initial_measurement = beamSimulation->moveBeamAndIntegrate(1.0, 1.0, 0.0, 0);
+
+    // Инициализация состояния фильтра
+    Eigen::VectorXd initial_state(6); // 4 интенсивности + x + y
+    initial_state << initial_measurement(0), initial_measurement(1), initial_measurement(2), initial_measurement(3), beamSimulation->getXc(), beamSimulation->getYc();
+    Eigen::MatrixXd initial_covariance = Eigen::MatrixXd::Identity(6, 6) * 1.0;
+    Eigen::MatrixXd process_noise_cov = Eigen::MatrixXd::Identity(6, 6) * processNoise;
     Eigen::MatrixXd measurement_noise_cov = Eigen::MatrixXd::Identity(4, 4) * measurementNoise;
 
     kalmanFilter = new AdaptiveUnscentedKalmanFilter(initial_state, initial_covariance, process_noise_cov, measurement_noise_cov);
     kalmanFilter->setParameters(alpha, beta, kappa);
-
-    beamSimulation = new BeamSimulation();
-    beamSimulation->setNoiseLevel(noiseLevel);
 
     currentTime = 0.0;
     iteration = 0;
@@ -309,17 +314,12 @@ void MainWindow::updatePlots() {
 
     // Получение истинных координат
     double trueX = beamSimulation->getXc();
-    double trueY = 0.0; // y_c = 0.0 в симуляции
+    double trueY = beamSimulation->getYc();
     trueXData.append(trueX);
     trueYData.append(trueY);
 
-    // Вычисление координат на основе зафильтрованных состояний
-    double I_A = kalmanFilter->getState()(0);
-    double I_B = kalmanFilter->getState()(1);
-    double I_C = kalmanFilter->getState()(2);
-    double I_D = kalmanFilter->getState()(3);
-
-    Eigen::Vector2d spot_position = kalmanFilter->calculateSpotPosition(I_A, I_B, I_C, I_D, 1.0, 1.0);
+    // Получение оцененных координат из фильтра
+    Eigen::Vector2d spot_position = kalmanFilter->calculateSpotPosition();
     double estimatedX = spot_position(0);
     double estimatedY = spot_position(1);
     estimatedXData.append(estimatedX);
@@ -331,34 +331,6 @@ void MainWindow::updatePlots() {
 
     truePositionCurveX->setSamples(timeData, trueXData);
     truePositionCurveY->setSamples(timeData, trueYData);
-
-    // Автоматическое масштабирование осей для estimatedCoordinatePlot
-    {
-        double minY = std::numeric_limits<double>::max();
-        double maxY = std::numeric_limits<double>::lowest();
-        for (int i = 0; i < estimatedXData.size(); ++i) {
-            minY = std::min({minY, estimatedXData[i], estimatedYData[i]});
-            maxY = std::max({maxY, estimatedXData[i], estimatedYData[i]});
-        }
-        // Добавляем небольшой отступ
-        double marginY = (maxY - minY) * 0.1;
-        if (marginY == 0) marginY = 1.0; // Если данные константны
-        estimatedCoordinatePlot->setAxisScale(QwtPlot::yLeft, minY - marginY, maxY + marginY);
-    }
-
-    // Автоматическое масштабирование осей для trueCoordinatePlot
-    {
-        double minY = std::numeric_limits<double>::max();
-        double maxY = std::numeric_limits<double>::lowest();
-        for (int i = 0; i < trueXData.size(); ++i) {
-            minY = std::min({minY, trueXData[i], trueYData[i]});
-            maxY = std::max({maxY, trueXData[i], trueYData[i]});
-        }
-        // Добавляем небольшой отступ
-        double marginY = (maxY - minY) * 0.1;
-        if (marginY == 0) marginY = 1.0;
-        trueCoordinatePlot->setAxisScale(QwtPlot::yLeft, minY - marginY, maxY + marginY);
-    }
 
     // Перерисовка графиков
     rawIntensityPlot->replot();
@@ -387,4 +359,3 @@ void MainWindow::onIntensityCurveToggled(int index, bool checked) {
     rawIntensityCurves[index]->setVisible(checked);
     filteredIntensityCurves[index]->setVisible(checked);
 }
-

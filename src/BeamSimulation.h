@@ -11,6 +11,7 @@ public:
     Eigen::VectorXd moveBeamAndIntegrate(double P0, double w, double y_c, int iteration);
 
     double getXc() const;
+    double getYc() const; // Добавлено
 
     void setNoiseLevel(double noiseLevel);
 
@@ -18,6 +19,7 @@ private:
     double h(double x, double y, double P0, double X, double Y, double w);
 
     double x_c;
+    double y_c;
     int k;
     std::default_random_engine generator;
     std::normal_distribution<double> noiseDistribution;

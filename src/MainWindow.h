@@ -8,7 +8,7 @@
 #include <QLineEdit>
 #include <QLabel>
 #include <QPushButton>
-#include <QCheckBox> // Добавлено
+#include <QCheckBox>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include "AdaptiveUnscentedKalmanFilter.h"
@@ -26,7 +26,7 @@ private slots:
     void onParametersChanged();                         // Обработчик изменения параметров
     void startSimulation();                             // Старт симуляции
     void stopSimulation();                              // Остановка симуляции
-    void onIntensityCurveToggled(int index, bool checked); // Добавлено
+    void onIntensityCurveToggled(int index, bool checked); // Управление отображением интенсивностей
 
 private:
     // Параметры фильтра и шума
@@ -60,7 +60,7 @@ private:
     QwtPlotCurve *filteredIntensityCurves[4]; // Кривые для 4 источников фильтрованных интенсивностей
 
     // Чекбоксы для управления отображением интенсивностей
-    QCheckBox *intensityCheckBoxes[4];        // Добавлено
+    QCheckBox *intensityCheckBoxes[4];
 
     // Кривые координат
     QwtPlotCurve *estimatedPositionCurveX; // Кривая для X координаты (оценка)
@@ -94,7 +94,6 @@ private:
     void setupPlots();                     // Настройка графиков
     void setupUI();                        // Настройка интерфейса пользователя
     void initializeCurves();               // Инициализация кривых на графиках
-    void resetSimulation();                // Сброс параметров симуляции
 };
 
 #endif // MAINWINDOW_H

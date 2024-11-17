@@ -2,7 +2,7 @@
 #include <cmath>
 
 BeamSimulation::BeamSimulation()
-    : x_c(-1.0), k(1), noiseLevel(0.6), noiseDistribution(0.0, 0.6)
+    : x_c(-1.0), y_c(0.0), k(1), noiseLevel(0.6), noiseDistribution(0.0, 0.6)
 {
     generator.seed(std::random_device{}());
 }
@@ -25,7 +25,7 @@ Eigen::VectorXd BeamSimulation::moveBeamAndIntegrate(double P0, double w, double
     // Обновление x_c
     x_c += k * speed * adc_time_step;
 
-    // Проверка на границы и изменение направления, проверить
+    // Проверка на границы и изменение направления
     if (x_c >= bounds_max) {
         x_c = bounds_max;
         k = -1;
@@ -34,7 +34,7 @@ Eigen::VectorXd BeamSimulation::moveBeamAndIntegrate(double P0, double w, double
         k = 1;
     }
 
-    // Интегрирование для каждого квадранта с добавлением шума. привести к конкретным еденицам
+    // Интегрирование для каждого квадранта с добавлением шума
     double noise_factor = 1.0;
 
     double I_A = std::abs(h(0.5, 0.5, P0, x_c, y_c, w)) + noise_factor * noiseDistribution(generator);
@@ -50,4 +50,8 @@ Eigen::VectorXd BeamSimulation::moveBeamAndIntegrate(double P0, double w, double
 
 double BeamSimulation::getXc() const {
     return x_c;
+}
+
+double BeamSimulation::getYc() const {
+    return y_c;
 }
