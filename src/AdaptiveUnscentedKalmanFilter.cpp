@@ -72,7 +72,7 @@ std::vector<Eigen::VectorXd> AdaptiveUnscentedKalmanFilter::computeSigmaPoints()
     std::vector<Eigen::VectorXd> sigma_points(sigma_point_count, Eigen::VectorXd(n));
     double scaling_factor = sqrt(n + lambda_);
 
-    // Используем разложение Холецкого с помощью Eigen для квадратного корня ковариационной матрицы
+    //разложение Холецкого Eigen 
     Eigen::MatrixXd sqrt_covariance = covariance.llt().matrixL();
 
     sigma_points[0] = state;

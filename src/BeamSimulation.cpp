@@ -25,7 +25,7 @@ Eigen::VectorXd BeamSimulation::moveBeamAndIntegrate(double P0, double w, double
     // Обновление x_c
     x_c += k * speed * adc_time_step;
 
-    // Проверка на границы и изменение направления
+    // Проверка на границы и изменение направления, проверить
     if (x_c >= bounds_max) {
         x_c = bounds_max;
         k = -1;
@@ -34,7 +34,7 @@ Eigen::VectorXd BeamSimulation::moveBeamAndIntegrate(double P0, double w, double
         k = 1;
     }
 
-    // Интегрирование для каждого квадранта с добавлением шума
+    // Интегрирование для каждого квадранта с добавлением шума. привести к конкретным еденицам
     double noise_factor = 1.0;
 
     double I_A = std::abs(h(0.5, 0.5, P0, x_c, y_c, w)) + noise_factor * noiseDistribution(generator);

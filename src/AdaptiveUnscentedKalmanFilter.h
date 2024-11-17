@@ -26,10 +26,10 @@ public:
     static double g(double Ex);
     static double lambdaFunc(double x0);
     
-    // Статическая функция для обратной функции ошибки
+    // для обратной функции ошибки
     static double erfinv(double x);
 
-    // Объявляем calculateSpotPosition
+   
     Eigen::Vector2d calculateSpotPosition(double I_A, double I_B, double I_C, double I_D, double w, double x0);
 
 private:
@@ -50,7 +50,7 @@ private:
     
     std::vector<Eigen::VectorXd> computeSigmaPoints();
 
-    // Удалите choleskyDecomposition если она не нужна или замените ее вызовом стандартной функции разложения Холецкого из Eigen
+    // Удалить choleskyDecomposition  или заменить ее разложеним Холецкого из Eigen
 };
 
 #endif // ADAPTIVE_UNSCENTED_KALMAN_FILTER_H

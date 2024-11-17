@@ -87,7 +87,7 @@ void MainWindow::setupUI() {
 
     simulationGroupBox->setLayout(simulationLayout);
 
-    // Кнопки управления
+    // Кнопки управления, добавить кнопки для отображения конкретных графиков
     startButton = new QPushButton("Старт");
     stopButton = new QPushButton("Стоп");
     stopButton->setEnabled(false);
@@ -95,7 +95,7 @@ void MainWindow::setupUI() {
     connect(startButton, &QPushButton::clicked, this, &MainWindow::startSimulation);
     connect(stopButton, &QPushButton::clicked, this, &MainWindow::stopSimulation);
 
-    // Размещение кнопок
+    // Размещение кнопок, доделать
     QHBoxLayout *buttonLayout = new QHBoxLayout();
     buttonLayout->addWidget(startButton);
     buttonLayout->addWidget(stopButton);
@@ -146,7 +146,7 @@ void MainWindow::setupUI() {
     trueCoordinatePlot->setAxisTitle(QwtPlot::xBottom, "Время");
     trueCoordinatePlot->setAxisTitle(QwtPlot::yLeft, "Координаты");
 
-    // Размещение графиков в сетке
+    // Размещение графиков в сетке, маштаб
     QGridLayout *plotsLayout = new QGridLayout();
     plotsLayout->addWidget(rawIntensityPlot, 0, 0);
     plotsLayout->addWidget(filteredIntensityPlot, 0, 1);
