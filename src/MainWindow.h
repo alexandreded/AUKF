@@ -9,8 +9,7 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QCheckBox>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
+#include <QVector>
 #include "AdaptiveUnscentedKalmanFilter.h"
 #include "BeamSimulation.h"
 
@@ -19,14 +18,15 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = nullptr);
+    explicit MainWindow(QWidget *parent = nullptr);
 
 private slots:
-    void updatePlots();                                 // Обновление графиков
-    void onParametersChanged();                         // Обработчик изменения параметров
-    void startSimulation();                             // Старт симуляции
-    void stopSimulation();                              // Остановка симуляции
-    void onIntensityCurveToggled(int index, bool checked); // Управление отображением интенсивностей
+    void updatePlots();                                     // Обновление графиков
+    void onParametersChanged();                             // Обработчик изменения параметров
+    void startSimulation();                                 // Старт симуляции
+    void stopSimulation();                                  // Остановка симуляции
+    void resetSimulation();                                 // Сброс симуляции
+    void onIntensityCurveToggled(int index, bool checked);  // Управление отображением интенсивностей
 
 private:
     // Параметры фильтра и шума
@@ -36,6 +36,7 @@ private:
     double processNoise;
     double measurementNoise;
     double noiseLevel;
+    double gapSize; // Размер щели между детекторами
 
     // UI элементы для настройки параметров фильтра и шума
     QLineEdit *alphaEdit;
@@ -44,16 +45,19 @@ private:
     QLineEdit *processNoiseEdit;
     QLineEdit *measurementNoiseEdit;
     QLineEdit *noiseLevelEdit;
+    QLineEdit *gapSizeEdit; // Поле ввода для размера щели
 
     // Кнопки управления
     QPushButton *startButton;
     QPushButton *stopButton;
+    QPushButton *resetButton;
 
     // Графики для отображения данных
     QwtPlot *rawIntensityPlot;            // График необработанных интенсивностей
     QwtPlot *filteredIntensityPlot;       // График фильтрованных интенсивностей
     QwtPlot *estimatedCoordinatePlot;     // График оцененных координат
     QwtPlot *trueCoordinatePlot;          // График истинных координат
+    QwtPlot *errorPlot;                   // График ошибки координат
 
     // Кривые интенсивностей
     QwtPlotCurve *rawIntensityCurves[4];      // Кривые для 4 источников необработанных интенсивностей
@@ -68,6 +72,9 @@ private:
     QwtPlotCurve *truePositionCurveX;      // Кривая для X координаты (истинное значение)
     QwtPlotCurve *truePositionCurveY;      // Кривая для Y координаты (истинное значение)
 
+    // Кривая ошибки
+    QwtPlotCurve *errorCurve;              // Кривая ошибки координат
+
     // Данные для графиков
     QVector<double> timeData;              // Временные метки
     QVector<double> rawIntensityData[4];   // Необработанные данные интенсивностей
@@ -76,6 +83,7 @@ private:
     QVector<double> estimatedYData;        // Оцененная координата Y
     QVector<double> trueXData;             // Истинная координата X
     QVector<double> trueYData;             // Истинная координата Y
+    QVector<double> errorData;             // Ошибка координат
 
     // Таймер для обновления графиков
     QTimer *updateTimer;
@@ -94,6 +102,14 @@ private:
     void setupPlots();                     // Настройка графиков
     void setupUI();                        // Настройка интерфейса пользователя
     void initializeCurves();               // Инициализация кривых на графиках
+
+    // Метки для отображения ошибок
+    QLabel *totalErrorLabel;               // Средняя ошибка за всё время
+    QLabel *recentErrorLabel;              // Средняя ошибка за последние 3 секунды
+
+    // Методы для обработки ошибок
+    void showError(const QString &message); // Отображение ошибки пользователю
+    void validateInput();                   // Валидация пользовательского ввода
 };
 
 #endif // MAINWINDOW_H

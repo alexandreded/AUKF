@@ -445,6 +445,7 @@
   /usr/include/locale.h \
   /usr/include/pthread.h \
   /usr/include/qt/QtCore/QTimer \
+  /usr/include/qt/QtCore/QVector \
   /usr/include/qt/QtCore/qalgorithms.h \
   /usr/include/qt/QtCore/qarraydata.h \
   /usr/include/qt/QtCore/qatomic.h \
@@ -532,20 +533,14 @@
   /usr/include/qt/QtGui/qtransform.h \
   /usr/include/qt/QtGui/qwindowdefs.h \
   /usr/include/qt/QtWidgets/QCheckBox \
-  /usr/include/qt/QtWidgets/QHBoxLayout \
   /usr/include/qt/QtWidgets/QLabel \
   /usr/include/qt/QtWidgets/QLineEdit \
   /usr/include/qt/QtWidgets/QMainWindow \
   /usr/include/qt/QtWidgets/QPushButton \
-  /usr/include/qt/QtWidgets/QVBoxLayout \
   /usr/include/qt/QtWidgets/qabstractbutton.h \
-  /usr/include/qt/QtWidgets/qboxlayout.h \
   /usr/include/qt/QtWidgets/qcheckbox.h \
   /usr/include/qt/QtWidgets/qframe.h \
-  /usr/include/qt/QtWidgets/qgridlayout.h \
   /usr/include/qt/QtWidgets/qlabel.h \
-  /usr/include/qt/QtWidgets/qlayout.h \
-  /usr/include/qt/QtWidgets/qlayoutitem.h \
   /usr/include/qt/QtWidgets/qlineedit.h \
   /usr/include/qt/QtWidgets/qmainwindow.h \
   /usr/include/qt/QtWidgets/qpushbutton.h \

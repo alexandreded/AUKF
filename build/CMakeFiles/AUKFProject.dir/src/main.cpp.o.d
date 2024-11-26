@@ -256,14 +256,8 @@ CMakeFiles/AUKFProject.dir/src/main.cpp.o: \
  /usr/include/qt/QtWidgets/qpushbutton.h \
  /usr/include/qt/QtWidgets/qabstractbutton.h \
  /usr/include/qt/QtWidgets/QCheckBox \
- /usr/include/qt/QtWidgets/qcheckbox.h \
- /usr/include/qt/QtWidgets/QVBoxLayout \
- /usr/include/qt/QtWidgets/qboxlayout.h \
- /usr/include/qt/QtWidgets/qlayout.h \
- /usr/include/qt/QtWidgets/qlayoutitem.h \
- /usr/include/qt/QtWidgets/qboxlayout.h \
- /usr/include/qt/QtWidgets/qgridlayout.h \
- /usr/include/qt/QtWidgets/QHBoxLayout \
+ /usr/include/qt/QtWidgets/qcheckbox.h /usr/include/qt/QtCore/QVector \
+ /usr/include/qt/QtCore/qvector.h \
  /home/aleff/Рабочий\ стол/progekts/AUKF/AUKF/src/AdaptiveUnscentedKalmanFilter.h \
  /usr/include/eigen3/Eigen/Dense /usr/include/eigen3/Eigen/Core \
  /usr/include/eigen3/Eigen/src/Core/util/DisableStupidWarnings.h \

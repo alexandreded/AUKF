@@ -251,14 +251,8 @@ CMakeFiles/AUKFProject.dir/src/MainWindow.cpp.o: \
  /usr/include/qt/QtWidgets/qpushbutton.h \
  /usr/include/qt/QtWidgets/qabstractbutton.h \
  /usr/include/qt/QtWidgets/QCheckBox \
- /usr/include/qt/QtWidgets/qcheckbox.h \
- /usr/include/qt/QtWidgets/QVBoxLayout \
- /usr/include/qt/QtWidgets/qboxlayout.h \
- /usr/include/qt/QtWidgets/qlayout.h \
- /usr/include/qt/QtWidgets/qlayoutitem.h \
- /usr/include/qt/QtWidgets/qboxlayout.h \
- /usr/include/qt/QtWidgets/qgridlayout.h \
- /usr/include/qt/QtWidgets/QHBoxLayout \
+ /usr/include/qt/QtWidgets/qcheckbox.h /usr/include/qt/QtCore/QVector \
+ /usr/include/qt/QtCore/qvector.h \
  /home/aleff/Рабочий\ стол/progekts/AUKF/AUKF/src/AdaptiveUnscentedKalmanFilter.h \
  /usr/include/eigen3/Eigen/Dense /usr/include/eigen3/Eigen/Core \
  /usr/include/eigen3/Eigen/src/Core/util/DisableStupidWarnings.h \
@@ -479,8 +473,13 @@ CMakeFiles/AUKFProject.dir/src/MainWindow.cpp.o: \
  /usr/include/c++/14.2.1/random /usr/include/c++/14.2.1/bits/random.h \
  /usr/include/c++/14.2.1/x86_64-pc-linux-gnu/bits/opt_random.h \
  /usr/include/c++/14.2.1/bits/random.tcc \
- /usr/include/qt/QtWidgets/QGridLayout \
+ /usr/include/qt/QtWidgets/QVBoxLayout \
+ /usr/include/qt/QtWidgets/qboxlayout.h \
+ /usr/include/qt/QtWidgets/qlayout.h \
+ /usr/include/qt/QtWidgets/qlayoutitem.h \
+ /usr/include/qt/QtWidgets/qboxlayout.h \
  /usr/include/qt/QtWidgets/qgridlayout.h \
+ /usr/include/qt/QtWidgets/QHBoxLayout \
  /usr/include/qt/QtWidgets/QGroupBox \
  /usr/include/qt/QtWidgets/qgroupbox.h \
  /usr/include/qt/QtGui/QDoubleValidator \
@@ -500,6 +499,14 @@ CMakeFiles/AUKFProject.dir/src/MainWindow.cpp.o: \
  /usr/include/qt/QtCore/qrect.h /usr/include/qt/QtCore/QSize \
  /usr/include/qt/QtCore/qsize.h /usr/include/qt/QtCore/QSizeF \
  /usr/include/qt/QtGui/QTransform /usr/include/qt/QtGui/qtransform.h \
- /usr/include/qt/QtCore/QDebug /usr/include/qt/QtCore/qdebug.h \
- /usr/include/qt/QtCore/qtextstream.h /usr/include/qt/QtCore/qset.h \
- /usr/include/qt/QtCore/qcontiguouscache.h
+ /usr/include/qt/QtCore/QLocale /usr/include/qt/QtCore/qlocale.h \
+ /usr/include/qwt/qwt_plot_zoomer.h /usr/include/qwt/qwt_plot_picker.h \
+ /usr/include/qwt/qwt_picker.h /usr/include/qwt/qwt_event_pattern.h \
+ /usr/include/qt/QtCore/qnamespace.h /usr/include/qt/QtCore/qobject.h \
+ /usr/include/qwt/qwt_plot_panner.h /usr/include/qwt/qwt_panner.h \
+ /usr/include/qt/QtWidgets/qwidget.h /usr/include/qwt/qwt_legend.h \
+ /usr/include/qwt/qwt_abstract_legend.h \
+ /usr/include/qwt/qwt_legend_data.h /usr/include/qt/QtCore/qvariant.h \
+ /usr/include/qt/QtCore/qmap.h /usr/include/qt/QtCore/QDebug \
+ /usr/include/qt/QtCore/qdebug.h /usr/include/qt/QtCore/qtextstream.h \
+ /usr/include/qt/QtCore/qset.h /usr/include/qt/QtCore/qcontiguouscache.h
