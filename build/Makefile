@@ -179,101 +179,125 @@ AUKFProject_autogen/mocs_compilation.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/AUKFProject.dir/build.make CMakeFiles/AUKFProject.dir/AUKFProject_autogen/mocs_compilation.cpp.s
 .PHONY : AUKFProject_autogen/mocs_compilation.cpp.s
 
-src/AdaptiveUnscentedKalmanFilter.o: src/AdaptiveUnscentedKalmanFilter.cpp.o
-.PHONY : src/AdaptiveUnscentedKalmanFilter.o
+filter/AdaptiveUnscentedKalmanFilter.o: filter/AdaptiveUnscentedKalmanFilter.cpp.o
+.PHONY : filter/AdaptiveUnscentedKalmanFilter.o
 
 # target to build an object file
-src/AdaptiveUnscentedKalmanFilter.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/AUKFProject.dir/build.make CMakeFiles/AUKFProject.dir/src/AdaptiveUnscentedKalmanFilter.cpp.o
-.PHONY : src/AdaptiveUnscentedKalmanFilter.cpp.o
+filter/AdaptiveUnscentedKalmanFilter.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/AUKFProject.dir/build.make CMakeFiles/AUKFProject.dir/filter/AdaptiveUnscentedKalmanFilter.cpp.o
+.PHONY : filter/AdaptiveUnscentedKalmanFilter.cpp.o
 
-src/AdaptiveUnscentedKalmanFilter.i: src/AdaptiveUnscentedKalmanFilter.cpp.i
-.PHONY : src/AdaptiveUnscentedKalmanFilter.i
+filter/AdaptiveUnscentedKalmanFilter.i: filter/AdaptiveUnscentedKalmanFilter.cpp.i
+.PHONY : filter/AdaptiveUnscentedKalmanFilter.i
 
 # target to preprocess a source file
-src/AdaptiveUnscentedKalmanFilter.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/AUKFProject.dir/build.make CMakeFiles/AUKFProject.dir/src/AdaptiveUnscentedKalmanFilter.cpp.i
-.PHONY : src/AdaptiveUnscentedKalmanFilter.cpp.i
+filter/AdaptiveUnscentedKalmanFilter.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/AUKFProject.dir/build.make CMakeFiles/AUKFProject.dir/filter/AdaptiveUnscentedKalmanFilter.cpp.i
+.PHONY : filter/AdaptiveUnscentedKalmanFilter.cpp.i
 
-src/AdaptiveUnscentedKalmanFilter.s: src/AdaptiveUnscentedKalmanFilter.cpp.s
-.PHONY : src/AdaptiveUnscentedKalmanFilter.s
+filter/AdaptiveUnscentedKalmanFilter.s: filter/AdaptiveUnscentedKalmanFilter.cpp.s
+.PHONY : filter/AdaptiveUnscentedKalmanFilter.s
 
 # target to generate assembly for a file
-src/AdaptiveUnscentedKalmanFilter.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/AUKFProject.dir/build.make CMakeFiles/AUKFProject.dir/src/AdaptiveUnscentedKalmanFilter.cpp.s
-.PHONY : src/AdaptiveUnscentedKalmanFilter.cpp.s
+filter/AdaptiveUnscentedKalmanFilter.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/AUKFProject.dir/build.make CMakeFiles/AUKFProject.dir/filter/AdaptiveUnscentedKalmanFilter.cpp.s
+.PHONY : filter/AdaptiveUnscentedKalmanFilter.cpp.s
 
-src/BeamSimulation.o: src/BeamSimulation.cpp.o
-.PHONY : src/BeamSimulation.o
+gui/MainWindow.o: gui/MainWindow.cpp.o
+.PHONY : gui/MainWindow.o
 
 # target to build an object file
-src/BeamSimulation.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/AUKFProject.dir/build.make CMakeFiles/AUKFProject.dir/src/BeamSimulation.cpp.o
-.PHONY : src/BeamSimulation.cpp.o
+gui/MainWindow.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/AUKFProject.dir/build.make CMakeFiles/AUKFProject.dir/gui/MainWindow.cpp.o
+.PHONY : gui/MainWindow.cpp.o
 
-src/BeamSimulation.i: src/BeamSimulation.cpp.i
-.PHONY : src/BeamSimulation.i
+gui/MainWindow.i: gui/MainWindow.cpp.i
+.PHONY : gui/MainWindow.i
 
 # target to preprocess a source file
-src/BeamSimulation.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/AUKFProject.dir/build.make CMakeFiles/AUKFProject.dir/src/BeamSimulation.cpp.i
-.PHONY : src/BeamSimulation.cpp.i
+gui/MainWindow.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/AUKFProject.dir/build.make CMakeFiles/AUKFProject.dir/gui/MainWindow.cpp.i
+.PHONY : gui/MainWindow.cpp.i
 
-src/BeamSimulation.s: src/BeamSimulation.cpp.s
-.PHONY : src/BeamSimulation.s
+gui/MainWindow.s: gui/MainWindow.cpp.s
+.PHONY : gui/MainWindow.s
 
 # target to generate assembly for a file
-src/BeamSimulation.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/AUKFProject.dir/build.make CMakeFiles/AUKFProject.dir/src/BeamSimulation.cpp.s
-.PHONY : src/BeamSimulation.cpp.s
+gui/MainWindow.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/AUKFProject.dir/build.make CMakeFiles/AUKFProject.dir/gui/MainWindow.cpp.s
+.PHONY : gui/MainWindow.cpp.s
 
-src/MainWindow.o: src/MainWindow.cpp.o
-.PHONY : src/MainWindow.o
+io/DataLogger.o: io/DataLogger.cpp.o
+.PHONY : io/DataLogger.o
 
 # target to build an object file
-src/MainWindow.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/AUKFProject.dir/build.make CMakeFiles/AUKFProject.dir/src/MainWindow.cpp.o
-.PHONY : src/MainWindow.cpp.o
+io/DataLogger.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/AUKFProject.dir/build.make CMakeFiles/AUKFProject.dir/io/DataLogger.cpp.o
+.PHONY : io/DataLogger.cpp.o
 
-src/MainWindow.i: src/MainWindow.cpp.i
-.PHONY : src/MainWindow.i
+io/DataLogger.i: io/DataLogger.cpp.i
+.PHONY : io/DataLogger.i
 
 # target to preprocess a source file
-src/MainWindow.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/AUKFProject.dir/build.make CMakeFiles/AUKFProject.dir/src/MainWindow.cpp.i
-.PHONY : src/MainWindow.cpp.i
+io/DataLogger.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/AUKFProject.dir/build.make CMakeFiles/AUKFProject.dir/io/DataLogger.cpp.i
+.PHONY : io/DataLogger.cpp.i
 
-src/MainWindow.s: src/MainWindow.cpp.s
-.PHONY : src/MainWindow.s
+io/DataLogger.s: io/DataLogger.cpp.s
+.PHONY : io/DataLogger.s
 
 # target to generate assembly for a file
-src/MainWindow.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/AUKFProject.dir/build.make CMakeFiles/AUKFProject.dir/src/MainWindow.cpp.s
-.PHONY : src/MainWindow.cpp.s
+io/DataLogger.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/AUKFProject.dir/build.make CMakeFiles/AUKFProject.dir/io/DataLogger.cpp.s
+.PHONY : io/DataLogger.cpp.s
 
-src/main.o: src/main.cpp.o
-.PHONY : src/main.o
+main.o: main.cpp.o
+.PHONY : main.o
 
 # target to build an object file
-src/main.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/AUKFProject.dir/build.make CMakeFiles/AUKFProject.dir/src/main.cpp.o
-.PHONY : src/main.cpp.o
+main.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/AUKFProject.dir/build.make CMakeFiles/AUKFProject.dir/main.cpp.o
+.PHONY : main.cpp.o
 
-src/main.i: src/main.cpp.i
-.PHONY : src/main.i
+main.i: main.cpp.i
+.PHONY : main.i
 
 # target to preprocess a source file
-src/main.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/AUKFProject.dir/build.make CMakeFiles/AUKFProject.dir/src/main.cpp.i
-.PHONY : src/main.cpp.i
+main.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/AUKFProject.dir/build.make CMakeFiles/AUKFProject.dir/main.cpp.i
+.PHONY : main.cpp.i
 
-src/main.s: src/main.cpp.s
-.PHONY : src/main.s
+main.s: main.cpp.s
+.PHONY : main.s
 
 # target to generate assembly for a file
-src/main.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/AUKFProject.dir/build.make CMakeFiles/AUKFProject.dir/src/main.cpp.s
-.PHONY : src/main.cpp.s
+main.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/AUKFProject.dir/build.make CMakeFiles/AUKFProject.dir/main.cpp.s
+.PHONY : main.cpp.s
+
+simulation/BeamSimulation.o: simulation/BeamSimulation.cpp.o
+.PHONY : simulation/BeamSimulation.o
+
+# target to build an object file
+simulation/BeamSimulation.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/AUKFProject.dir/build.make CMakeFiles/AUKFProject.dir/simulation/BeamSimulation.cpp.o
+.PHONY : simulation/BeamSimulation.cpp.o
+
+simulation/BeamSimulation.i: simulation/BeamSimulation.cpp.i
+.PHONY : simulation/BeamSimulation.i
+
+# target to preprocess a source file
+simulation/BeamSimulation.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/AUKFProject.dir/build.make CMakeFiles/AUKFProject.dir/simulation/BeamSimulation.cpp.i
+.PHONY : simulation/BeamSimulation.cpp.i
+
+simulation/BeamSimulation.s: simulation/BeamSimulation.cpp.s
+.PHONY : simulation/BeamSimulation.s
+
+# target to generate assembly for a file
+simulation/BeamSimulation.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/AUKFProject.dir/build.make CMakeFiles/AUKFProject.dir/simulation/BeamSimulation.cpp.s
+.PHONY : simulation/BeamSimulation.cpp.s
 
 # Help Target
 help:
@@ -289,18 +313,21 @@ help:
 	@echo "... AUKFProject_autogen/mocs_compilation.o"
 	@echo "... AUKFProject_autogen/mocs_compilation.i"
 	@echo "... AUKFProject_autogen/mocs_compilation.s"
-	@echo "... src/AdaptiveUnscentedKalmanFilter.o"
-	@echo "... src/AdaptiveUnscentedKalmanFilter.i"
-	@echo "... src/AdaptiveUnscentedKalmanFilter.s"
-	@echo "... src/BeamSimulation.o"
-	@echo "... src/BeamSimulation.i"
-	@echo "... src/BeamSimulation.s"
-	@echo "... src/MainWindow.o"
-	@echo "... src/MainWindow.i"
-	@echo "... src/MainWindow.s"
-	@echo "... src/main.o"
-	@echo "... src/main.i"
-	@echo "... src/main.s"
+	@echo "... filter/AdaptiveUnscentedKalmanFilter.o"
+	@echo "... filter/AdaptiveUnscentedKalmanFilter.i"
+	@echo "... filter/AdaptiveUnscentedKalmanFilter.s"
+	@echo "... gui/MainWindow.o"
+	@echo "... gui/MainWindow.i"
+	@echo "... gui/MainWindow.s"
+	@echo "... io/DataLogger.o"
+	@echo "... io/DataLogger.i"
+	@echo "... io/DataLogger.s"
+	@echo "... main.o"
+	@echo "... main.i"
+	@echo "... main.s"
+	@echo "... simulation/BeamSimulation.o"
+	@echo "... simulation/BeamSimulation.i"
+	@echo "... simulation/BeamSimulation.s"
 .PHONY : help
 
 

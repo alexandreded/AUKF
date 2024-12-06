@@ -1,7 +1,7 @@
 CMakeFiles/AUKFProject.dir/AUKFProject_autogen/mocs_compilation.cpp.o: \
  /home/aleff/Рабочий\ стол/progekts/AUKF/AUKF/build/AUKFProject_autogen/mocs_compilation.cpp \
  /usr/include/stdc-predef.h \
- /home/aleff/Рабочий\ стол/progekts/AUKF/AUKF/build/AUKFProject_autogen/UVLADIE3JM/moc_MainWindow.cpp \
+ /home/aleff/Рабочий\ стол/progekts/AUKF/AUKF/build/AUKFProject_autogen/DMHXEJ42XS/moc_MainWindow.cpp \
  /usr/include/c++/14.2.1/memory /usr/include/c++/14.2.1/bits/memoryfwd.h \
  /usr/include/c++/14.2.1/x86_64-pc-linux-gnu/bits/c++config.h \
  /usr/include/c++/14.2.1/x86_64-pc-linux-gnu/bits/os_defines.h \
@@ -101,7 +101,7 @@ CMakeFiles/AUKFProject.dir/AUKFProject_autogen/mocs_compilation.cpp.o: \
  /usr/include/c++/14.2.1/bits/atomic_base.h \
  /usr/include/c++/14.2.1/bits/atomic_lockfree_defines.h \
  /usr/include/c++/14.2.1/backward/auto_ptr.h \
- /home/aleff/Рабочий\ стол/progekts/AUKF/AUKF/build/AUKFProject_autogen/UVLADIE3JM/../../../src/MainWindow.h \
+ /home/aleff/Рабочий\ стол/progekts/AUKF/AUKF/build/AUKFProject_autogen/DMHXEJ42XS/../../../gui/MainWindow.h \
  /usr/include/qt/QtWidgets/QMainWindow \
  /usr/include/qt/QtWidgets/qmainwindow.h \
  /usr/include/qt/QtWidgets/qtwidgetsglobal.h \
@@ -124,7 +124,8 @@ CMakeFiles/AUKFProject.dir/AUKFProject_autogen/mocs_compilation.cpp.o: \
  /usr/include/bits/byteswap.h /usr/include/bits/uintn-identity.h \
  /usr/include/sys/select.h /usr/include/bits/select.h \
  /usr/include/bits/types/sigset_t.h /usr/include/alloca.h \
- /usr/include/bits/stdlib-float.h /usr/include/c++/14.2.1/bits/std_abs.h \
+ /usr/include/bits/stdlib-bsearch.h /usr/include/bits/stdlib-float.h \
+ /usr/include/c++/14.2.1/bits/std_abs.h \
  /usr/include/qt/QtCore/qtypeinfo.h /usr/include/qt/QtCore/qsysinfo.h \
  /usr/include/qt/QtCore/qlogging.h /usr/include/qt/QtCore/qflags.h \
  /usr/include/qt/QtCore/qatomic.h /usr/include/qt/QtCore/qbasicatomic.h \
@@ -156,11 +157,11 @@ CMakeFiles/AUKFProject.dir/AUKFProject_autogen/mocs_compilation.cpp.o: \
  /usr/include/bits/types/__fpos_t.h /usr/include/bits/types/__fpos64_t.h \
  /usr/include/bits/types/struct_FILE.h \
  /usr/include/bits/types/cookie_io_functions_t.h \
- /usr/include/bits/stdio_lim.h /usr/include/c++/14.2.1/cerrno \
- /usr/include/errno.h /usr/include/bits/errno.h \
- /usr/include/linux/errno.h /usr/include/asm/errno.h \
- /usr/include/asm-generic/errno.h /usr/include/asm-generic/errno-base.h \
- /usr/include/bits/types/error_t.h \
+ /usr/include/bits/stdio_lim.h /usr/include/bits/stdio.h \
+ /usr/include/c++/14.2.1/cerrno /usr/include/errno.h \
+ /usr/include/bits/errno.h /usr/include/linux/errno.h \
+ /usr/include/asm/errno.h /usr/include/asm-generic/errno.h \
+ /usr/include/asm-generic/errno-base.h /usr/include/bits/types/error_t.h \
  /usr/include/c++/14.2.1/bits/charconv.h \
  /usr/include/c++/14.2.1/bits/basic_string.tcc \
  /usr/include/c++/14.2.1/iterator \
@@ -229,31 +230,20 @@ CMakeFiles/AUKFProject.dir/AUKFProject_autogen/mocs_compilation.cpp.o: \
  /usr/include/qt/QtWidgets/qsizepolicy.h /usr/include/qt/QtGui/qcursor.h \
  /usr/include/qt/QtGui/qkeysequence.h \
  /usr/include/qt/QtWidgets/qtabwidget.h /usr/include/qt/QtGui/qicon.h \
- /usr/include/qwt/qwt_plot.h /usr/include/qwt/qwt_global.h \
- /usr/include/qt/QtCore/qglobal.h /usr/include/qwt/qwt_axis_id.h \
- /usr/include/qwt/qwt_axis.h /usr/include/qwt/qwt_plot_dict.h \
- /usr/include/qwt/qwt_plot_item.h /usr/include/qt/QtCore/qmetatype.h \
- /usr/include/qt/QtCore/qlist.h /usr/include/qt/QtWidgets/qframe.h \
- /usr/include/qwt/qwt_plot_curve.h /usr/include/qwt/qwt_plot_seriesitem.h \
- /usr/include/qwt/qwt_series_store.h /usr/include/qwt/qwt_series_data.h \
- /usr/include/qwt/qwt_samples.h /usr/include/qwt/qwt_interval.h \
- /usr/include/qt/QtCore/qvector.h /usr/include/qt/QtCore/qrect.h \
- /usr/include/qwt/qwt_point_3d.h /usr/include/qt/QtCore/qpoint.h \
- /usr/include/qt/QtCore/qstring.h /usr/include/qt/QtCore/QTimer \
- /usr/include/qt/QtCore/qtimer.h /usr/include/qt/QtCore/qbasictimer.h \
+ /usr/include/qt/QtWidgets/QPushButton \
+ /usr/include/qt/QtWidgets/qpushbutton.h \
+ /usr/include/qt/QtWidgets/qabstractbutton.h \
  /usr/include/qt/QtWidgets/QLineEdit \
  /usr/include/qt/QtWidgets/qlineedit.h /usr/include/qt/QtWidgets/qframe.h \
  /usr/include/qt/QtGui/qtextcursor.h /usr/include/qt/QtGui/qtextformat.h \
  /usr/include/qt/QtCore/qvariant.h /usr/include/qt/QtCore/qmap.h \
  /usr/include/qt/QtGui/qpen.h /usr/include/qt/QtGui/qtextoption.h \
- /usr/include/qt/QtWidgets/QLabel /usr/include/qt/QtWidgets/qlabel.h \
- /usr/include/qt/QtWidgets/QPushButton \
- /usr/include/qt/QtWidgets/qpushbutton.h \
- /usr/include/qt/QtWidgets/qabstractbutton.h \
  /usr/include/qt/QtWidgets/QCheckBox \
- /usr/include/qt/QtWidgets/qcheckbox.h /usr/include/qt/QtCore/QVector \
- /usr/include/qt/QtCore/qvector.h \
- /home/aleff/Рабочий\ стол/progekts/AUKF/AUKF/build/AUKFProject_autogen/UVLADIE3JM/../../../src/AdaptiveUnscentedKalmanFilter.h \
+ /usr/include/qt/QtWidgets/qcheckbox.h /usr/include/qt/QtWidgets/QLabel \
+ /usr/include/qt/QtWidgets/qlabel.h /usr/include/qt/QtCore/QTimer \
+ /usr/include/qt/QtCore/qtimer.h /usr/include/qt/QtCore/qbasictimer.h \
+ /home/aleff/Рабочий\ стол/progekts/AUKF/AUKF/build/AUKFProject_autogen/DMHXEJ42XS/../../../gui/../Config.h \
+ /home/aleff/Рабочий\ стол/progekts/AUKF/AUKF/build/AUKFProject_autogen/DMHXEJ42XS/../../../gui/../filter/AdaptiveUnscentedKalmanFilter.h \
  /usr/include/eigen3/Eigen/Dense /usr/include/eigen3/Eigen/Core \
  /usr/include/eigen3/Eigen/src/Core/util/DisableStupidWarnings.h \
  /usr/include/eigen3/Eigen/src/Core/util/Macros.h \
@@ -469,7 +459,30 @@ CMakeFiles/AUKFProject.dir/AUKFProject_autogen/mocs_compilation.cpp.o: \
  /usr/include/eigen3/Eigen/src/Eigenvalues/MatrixBaseEigenvalues.h \
  /usr/include/c++/14.2.1/deque /usr/include/c++/14.2.1/bits/stl_deque.h \
  /usr/include/c++/14.2.1/bits/deque.tcc \
- /home/aleff/Рабочий\ стол/progekts/AUKF/AUKF/build/AUKFProject_autogen/UVLADIE3JM/../../../src/BeamSimulation.h \
+ /home/aleff/Рабочий\ стол/progekts/AUKF/AUKF/build/AUKFProject_autogen/DMHXEJ42XS/../../../gui/../simulation/BeamSimulation.h \
  /usr/include/c++/14.2.1/random /usr/include/c++/14.2.1/bits/random.h \
  /usr/include/c++/14.2.1/x86_64-pc-linux-gnu/bits/opt_random.h \
- /usr/include/c++/14.2.1/bits/random.tcc
+ /usr/include/c++/14.2.1/bits/random.tcc \
+ /home/aleff/Рабочий\ стол/progekts/AUKF/AUKF/build/AUKFProject_autogen/DMHXEJ42XS/../../../gui/../io/DataLogger.h \
+ /usr/include/qt/QtCore/QFile /usr/include/qt/QtCore/qfile.h \
+ /usr/include/qt/QtCore/qfiledevice.h /usr/include/qt/QtCore/QTextStream \
+ /usr/include/qt/QtCore/qtextstream.h /usr/include/qt/QtCore/qlocale.h \
+ /usr/include/qt/QtCore/QJsonArray /usr/include/qt/QtCore/qjsonarray.h \
+ /usr/include/qt/QtCore/qjsonvalue.h /usr/include/qt/QtCore/qcborvalue.h \
+ /usr/include/qt/QtCore/qdatetime.h /usr/include/qt/QtCore/qcborcommon.h \
+ /usr/include/qt/QtCore/qdebug.h /usr/include/qt/QtCore/qtextstream.h \
+ /usr/include/qt/QtCore/qset.h /usr/include/qt/QtCore/qcontiguouscache.h \
+ /usr/include/qt/QtCore/qregularexpression.h \
+ /usr/include/qt/QtCore/qurl.h /usr/include/qt/QtCore/quuid.h \
+ /usr/include/qt/QtCore/QString /usr/include/qt/QtCore/qstring.h \
+ /usr/include/qwt/qwt_plot.h /usr/include/qwt/qwt_global.h \
+ /usr/include/qt/QtCore/qglobal.h /usr/include/qwt/qwt_axis_id.h \
+ /usr/include/qwt/qwt_axis.h /usr/include/qwt/qwt_plot_dict.h \
+ /usr/include/qwt/qwt_plot_item.h /usr/include/qt/QtCore/qmetatype.h \
+ /usr/include/qt/QtCore/qlist.h /usr/include/qt/QtWidgets/qframe.h \
+ /usr/include/qwt/qwt_plot_curve.h /usr/include/qwt/qwt_plot_seriesitem.h \
+ /usr/include/qwt/qwt_series_store.h /usr/include/qwt/qwt_series_data.h \
+ /usr/include/qwt/qwt_samples.h /usr/include/qwt/qwt_interval.h \
+ /usr/include/qt/QtCore/qvector.h /usr/include/qt/QtCore/qrect.h \
+ /usr/include/qwt/qwt_point_3d.h /usr/include/qt/QtCore/qpoint.h \
+ /usr/include/qt/QtCore/qstring.h

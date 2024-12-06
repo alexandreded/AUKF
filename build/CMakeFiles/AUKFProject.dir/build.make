@@ -72,7 +72,7 @@ include CMakeFiles/AUKFProject.dir/flags.make
 AUKFProject_autogen/timestamp: /usr/bin/moc
 AUKFProject_autogen/timestamp: CMakeFiles/AUKFProject.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir="/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_1) "Automatic MOC for target AUKFProject"
-	/usr/bin/cmake -E cmake_autogen "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build/CMakeFiles/AUKFProject_autogen.dir/AutogenInfo.json" ""
+	/usr/bin/cmake -E cmake_autogen "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build/CMakeFiles/AUKFProject_autogen.dir/AutogenInfo.json" Release
 	/usr/bin/cmake -E touch "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build/AUKFProject_autogen/timestamp"
 
 CMakeFiles/AUKFProject.dir/AUKFProject_autogen/mocs_compilation.cpp.o: CMakeFiles/AUKFProject.dir/flags.make
@@ -89,85 +89,101 @@ CMakeFiles/AUKFProject.dir/AUKFProject_autogen/mocs_compilation.cpp.s: cmake_for
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/AUKFProject.dir/AUKFProject_autogen/mocs_compilation.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build/AUKFProject_autogen/mocs_compilation.cpp" -o CMakeFiles/AUKFProject.dir/AUKFProject_autogen/mocs_compilation.cpp.s
 
-CMakeFiles/AUKFProject.dir/src/main.cpp.o: CMakeFiles/AUKFProject.dir/flags.make
-CMakeFiles/AUKFProject.dir/src/main.cpp.o: /home/aleff/Рабочий\ стол/progekts/AUKF/AUKF/src/main.cpp
-CMakeFiles/AUKFProject.dir/src/main.cpp.o: CMakeFiles/AUKFProject.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/AUKFProject.dir/src/main.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/AUKFProject.dir/src/main.cpp.o -MF CMakeFiles/AUKFProject.dir/src/main.cpp.o.d -o CMakeFiles/AUKFProject.dir/src/main.cpp.o -c "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/src/main.cpp"
+CMakeFiles/AUKFProject.dir/main.cpp.o: CMakeFiles/AUKFProject.dir/flags.make
+CMakeFiles/AUKFProject.dir/main.cpp.o: /home/aleff/Рабочий\ стол/progekts/AUKF/AUKF/main.cpp
+CMakeFiles/AUKFProject.dir/main.cpp.o: CMakeFiles/AUKFProject.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/AUKFProject.dir/main.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/AUKFProject.dir/main.cpp.o -MF CMakeFiles/AUKFProject.dir/main.cpp.o.d -o CMakeFiles/AUKFProject.dir/main.cpp.o -c "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/main.cpp"
 
-CMakeFiles/AUKFProject.dir/src/main.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/AUKFProject.dir/src/main.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/src/main.cpp" > CMakeFiles/AUKFProject.dir/src/main.cpp.i
+CMakeFiles/AUKFProject.dir/main.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/AUKFProject.dir/main.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/main.cpp" > CMakeFiles/AUKFProject.dir/main.cpp.i
 
-CMakeFiles/AUKFProject.dir/src/main.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/AUKFProject.dir/src/main.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/src/main.cpp" -o CMakeFiles/AUKFProject.dir/src/main.cpp.s
+CMakeFiles/AUKFProject.dir/main.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/AUKFProject.dir/main.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/main.cpp" -o CMakeFiles/AUKFProject.dir/main.cpp.s
 
-CMakeFiles/AUKFProject.dir/src/AdaptiveUnscentedKalmanFilter.cpp.o: CMakeFiles/AUKFProject.dir/flags.make
-CMakeFiles/AUKFProject.dir/src/AdaptiveUnscentedKalmanFilter.cpp.o: /home/aleff/Рабочий\ стол/progekts/AUKF/AUKF/src/AdaptiveUnscentedKalmanFilter.cpp
-CMakeFiles/AUKFProject.dir/src/AdaptiveUnscentedKalmanFilter.cpp.o: CMakeFiles/AUKFProject.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/AUKFProject.dir/src/AdaptiveUnscentedKalmanFilter.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/AUKFProject.dir/src/AdaptiveUnscentedKalmanFilter.cpp.o -MF CMakeFiles/AUKFProject.dir/src/AdaptiveUnscentedKalmanFilter.cpp.o.d -o CMakeFiles/AUKFProject.dir/src/AdaptiveUnscentedKalmanFilter.cpp.o -c "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/src/AdaptiveUnscentedKalmanFilter.cpp"
+CMakeFiles/AUKFProject.dir/gui/MainWindow.cpp.o: CMakeFiles/AUKFProject.dir/flags.make
+CMakeFiles/AUKFProject.dir/gui/MainWindow.cpp.o: /home/aleff/Рабочий\ стол/progekts/AUKF/AUKF/gui/MainWindow.cpp
+CMakeFiles/AUKFProject.dir/gui/MainWindow.cpp.o: CMakeFiles/AUKFProject.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/AUKFProject.dir/gui/MainWindow.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/AUKFProject.dir/gui/MainWindow.cpp.o -MF CMakeFiles/AUKFProject.dir/gui/MainWindow.cpp.o.d -o CMakeFiles/AUKFProject.dir/gui/MainWindow.cpp.o -c "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/gui/MainWindow.cpp"
 
-CMakeFiles/AUKFProject.dir/src/AdaptiveUnscentedKalmanFilter.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/AUKFProject.dir/src/AdaptiveUnscentedKalmanFilter.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/src/AdaptiveUnscentedKalmanFilter.cpp" > CMakeFiles/AUKFProject.dir/src/AdaptiveUnscentedKalmanFilter.cpp.i
+CMakeFiles/AUKFProject.dir/gui/MainWindow.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/AUKFProject.dir/gui/MainWindow.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/gui/MainWindow.cpp" > CMakeFiles/AUKFProject.dir/gui/MainWindow.cpp.i
 
-CMakeFiles/AUKFProject.dir/src/AdaptiveUnscentedKalmanFilter.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/AUKFProject.dir/src/AdaptiveUnscentedKalmanFilter.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/src/AdaptiveUnscentedKalmanFilter.cpp" -o CMakeFiles/AUKFProject.dir/src/AdaptiveUnscentedKalmanFilter.cpp.s
+CMakeFiles/AUKFProject.dir/gui/MainWindow.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/AUKFProject.dir/gui/MainWindow.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/gui/MainWindow.cpp" -o CMakeFiles/AUKFProject.dir/gui/MainWindow.cpp.s
 
-CMakeFiles/AUKFProject.dir/src/BeamSimulation.cpp.o: CMakeFiles/AUKFProject.dir/flags.make
-CMakeFiles/AUKFProject.dir/src/BeamSimulation.cpp.o: /home/aleff/Рабочий\ стол/progekts/AUKF/AUKF/src/BeamSimulation.cpp
-CMakeFiles/AUKFProject.dir/src/BeamSimulation.cpp.o: CMakeFiles/AUKFProject.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/AUKFProject.dir/src/BeamSimulation.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/AUKFProject.dir/src/BeamSimulation.cpp.o -MF CMakeFiles/AUKFProject.dir/src/BeamSimulation.cpp.o.d -o CMakeFiles/AUKFProject.dir/src/BeamSimulation.cpp.o -c "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/src/BeamSimulation.cpp"
+CMakeFiles/AUKFProject.dir/filter/AdaptiveUnscentedKalmanFilter.cpp.o: CMakeFiles/AUKFProject.dir/flags.make
+CMakeFiles/AUKFProject.dir/filter/AdaptiveUnscentedKalmanFilter.cpp.o: /home/aleff/Рабочий\ стол/progekts/AUKF/AUKF/filter/AdaptiveUnscentedKalmanFilter.cpp
+CMakeFiles/AUKFProject.dir/filter/AdaptiveUnscentedKalmanFilter.cpp.o: CMakeFiles/AUKFProject.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/AUKFProject.dir/filter/AdaptiveUnscentedKalmanFilter.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/AUKFProject.dir/filter/AdaptiveUnscentedKalmanFilter.cpp.o -MF CMakeFiles/AUKFProject.dir/filter/AdaptiveUnscentedKalmanFilter.cpp.o.d -o CMakeFiles/AUKFProject.dir/filter/AdaptiveUnscentedKalmanFilter.cpp.o -c "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/filter/AdaptiveUnscentedKalmanFilter.cpp"
 
-CMakeFiles/AUKFProject.dir/src/BeamSimulation.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/AUKFProject.dir/src/BeamSimulation.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/src/BeamSimulation.cpp" > CMakeFiles/AUKFProject.dir/src/BeamSimulation.cpp.i
+CMakeFiles/AUKFProject.dir/filter/AdaptiveUnscentedKalmanFilter.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/AUKFProject.dir/filter/AdaptiveUnscentedKalmanFilter.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/filter/AdaptiveUnscentedKalmanFilter.cpp" > CMakeFiles/AUKFProject.dir/filter/AdaptiveUnscentedKalmanFilter.cpp.i
 
-CMakeFiles/AUKFProject.dir/src/BeamSimulation.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/AUKFProject.dir/src/BeamSimulation.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/src/BeamSimulation.cpp" -o CMakeFiles/AUKFProject.dir/src/BeamSimulation.cpp.s
+CMakeFiles/AUKFProject.dir/filter/AdaptiveUnscentedKalmanFilter.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/AUKFProject.dir/filter/AdaptiveUnscentedKalmanFilter.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/filter/AdaptiveUnscentedKalmanFilter.cpp" -o CMakeFiles/AUKFProject.dir/filter/AdaptiveUnscentedKalmanFilter.cpp.s
 
-CMakeFiles/AUKFProject.dir/src/MainWindow.cpp.o: CMakeFiles/AUKFProject.dir/flags.make
-CMakeFiles/AUKFProject.dir/src/MainWindow.cpp.o: /home/aleff/Рабочий\ стол/progekts/AUKF/AUKF/src/MainWindow.cpp
-CMakeFiles/AUKFProject.dir/src/MainWindow.cpp.o: CMakeFiles/AUKFProject.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/AUKFProject.dir/src/MainWindow.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/AUKFProject.dir/src/MainWindow.cpp.o -MF CMakeFiles/AUKFProject.dir/src/MainWindow.cpp.o.d -o CMakeFiles/AUKFProject.dir/src/MainWindow.cpp.o -c "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/src/MainWindow.cpp"
+CMakeFiles/AUKFProject.dir/simulation/BeamSimulation.cpp.o: CMakeFiles/AUKFProject.dir/flags.make
+CMakeFiles/AUKFProject.dir/simulation/BeamSimulation.cpp.o: /home/aleff/Рабочий\ стол/progekts/AUKF/AUKF/simulation/BeamSimulation.cpp
+CMakeFiles/AUKFProject.dir/simulation/BeamSimulation.cpp.o: CMakeFiles/AUKFProject.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/AUKFProject.dir/simulation/BeamSimulation.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/AUKFProject.dir/simulation/BeamSimulation.cpp.o -MF CMakeFiles/AUKFProject.dir/simulation/BeamSimulation.cpp.o.d -o CMakeFiles/AUKFProject.dir/simulation/BeamSimulation.cpp.o -c "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/simulation/BeamSimulation.cpp"
 
-CMakeFiles/AUKFProject.dir/src/MainWindow.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/AUKFProject.dir/src/MainWindow.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/src/MainWindow.cpp" > CMakeFiles/AUKFProject.dir/src/MainWindow.cpp.i
+CMakeFiles/AUKFProject.dir/simulation/BeamSimulation.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/AUKFProject.dir/simulation/BeamSimulation.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/simulation/BeamSimulation.cpp" > CMakeFiles/AUKFProject.dir/simulation/BeamSimulation.cpp.i
 
-CMakeFiles/AUKFProject.dir/src/MainWindow.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/AUKFProject.dir/src/MainWindow.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/src/MainWindow.cpp" -o CMakeFiles/AUKFProject.dir/src/MainWindow.cpp.s
+CMakeFiles/AUKFProject.dir/simulation/BeamSimulation.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/AUKFProject.dir/simulation/BeamSimulation.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/simulation/BeamSimulation.cpp" -o CMakeFiles/AUKFProject.dir/simulation/BeamSimulation.cpp.s
+
+CMakeFiles/AUKFProject.dir/io/DataLogger.cpp.o: CMakeFiles/AUKFProject.dir/flags.make
+CMakeFiles/AUKFProject.dir/io/DataLogger.cpp.o: /home/aleff/Рабочий\ стол/progekts/AUKF/AUKF/io/DataLogger.cpp
+CMakeFiles/AUKFProject.dir/io/DataLogger.cpp.o: CMakeFiles/AUKFProject.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/AUKFProject.dir/io/DataLogger.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/AUKFProject.dir/io/DataLogger.cpp.o -MF CMakeFiles/AUKFProject.dir/io/DataLogger.cpp.o.d -o CMakeFiles/AUKFProject.dir/io/DataLogger.cpp.o -c "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/io/DataLogger.cpp"
+
+CMakeFiles/AUKFProject.dir/io/DataLogger.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/AUKFProject.dir/io/DataLogger.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/io/DataLogger.cpp" > CMakeFiles/AUKFProject.dir/io/DataLogger.cpp.i
+
+CMakeFiles/AUKFProject.dir/io/DataLogger.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/AUKFProject.dir/io/DataLogger.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/io/DataLogger.cpp" -o CMakeFiles/AUKFProject.dir/io/DataLogger.cpp.s
 
 # Object files for target AUKFProject
 AUKFProject_OBJECTS = \
 "CMakeFiles/AUKFProject.dir/AUKFProject_autogen/mocs_compilation.cpp.o" \
-"CMakeFiles/AUKFProject.dir/src/main.cpp.o" \
-"CMakeFiles/AUKFProject.dir/src/AdaptiveUnscentedKalmanFilter.cpp.o" \
-"CMakeFiles/AUKFProject.dir/src/BeamSimulation.cpp.o" \
-"CMakeFiles/AUKFProject.dir/src/MainWindow.cpp.o"
+"CMakeFiles/AUKFProject.dir/main.cpp.o" \
+"CMakeFiles/AUKFProject.dir/gui/MainWindow.cpp.o" \
+"CMakeFiles/AUKFProject.dir/filter/AdaptiveUnscentedKalmanFilter.cpp.o" \
+"CMakeFiles/AUKFProject.dir/simulation/BeamSimulation.cpp.o" \
+"CMakeFiles/AUKFProject.dir/io/DataLogger.cpp.o"
 
 # External object files for target AUKFProject
 AUKFProject_EXTERNAL_OBJECTS =
 
 AUKFProject: CMakeFiles/AUKFProject.dir/AUKFProject_autogen/mocs_compilation.cpp.o
-AUKFProject: CMakeFiles/AUKFProject.dir/src/main.cpp.o
-AUKFProject: CMakeFiles/AUKFProject.dir/src/AdaptiveUnscentedKalmanFilter.cpp.o
-AUKFProject: CMakeFiles/AUKFProject.dir/src/BeamSimulation.cpp.o
-AUKFProject: CMakeFiles/AUKFProject.dir/src/MainWindow.cpp.o
+AUKFProject: CMakeFiles/AUKFProject.dir/main.cpp.o
+AUKFProject: CMakeFiles/AUKFProject.dir/gui/MainWindow.cpp.o
+AUKFProject: CMakeFiles/AUKFProject.dir/filter/AdaptiveUnscentedKalmanFilter.cpp.o
+AUKFProject: CMakeFiles/AUKFProject.dir/simulation/BeamSimulation.cpp.o
+AUKFProject: CMakeFiles/AUKFProject.dir/io/DataLogger.cpp.o
 AUKFProject: CMakeFiles/AUKFProject.dir/build.make
 AUKFProject: /usr/lib/libQt5Widgets.so.5.15.15
 AUKFProject: /usr/lib/libQt5Gui.so.5.15.15
 AUKFProject: /usr/lib/libqwt.so
 AUKFProject: /usr/lib/libQt5Core.so.5.15.15
 AUKFProject: CMakeFiles/AUKFProject.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir="/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_7) "Linking CXX executable AUKFProject"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir="/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_8) "Linking CXX executable AUKFProject"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/AUKFProject.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

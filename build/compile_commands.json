@@ -1,32 +1,38 @@
 [
 {
   "directory": "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build",
-  "command": "/usr/bin/g++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -I\"/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build\" -I\"/home/aleff/Рабочий стол/progekts/AUKF/AUKF\" -I\"/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build/AUKFProject_autogen/include\" -I/usr/include/eigen3 -I/usr/include/qwt -I\"/home/aleff/Рабочий стол/progekts/AUKF/AUKF/src\" -isystem /usr/include/qt -isystem /usr/include/qt/QtWidgets -isystem /usr/include/qt/QtGui -isystem /usr/include/qt/QtCore -isystem /usr/lib/qt/mkspecs/linux-g++ -g -std=gnu++14 -fPIC -o CMakeFiles/AUKFProject.dir/AUKFProject_autogen/mocs_compilation.cpp.o -c \"/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build/AUKFProject_autogen/mocs_compilation.cpp\"",
+  "command": "/usr/bin/c++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NO_DEBUG -DQT_WIDGETS_LIB -I\"/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build\" -I\"/home/aleff/Рабочий стол/progekts/AUKF/AUKF\" -I\"/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build/AUKFProject_autogen/include\" -I/usr/include/eigen3 -I/usr/include/qwt -isystem /usr/include/qt -isystem /usr/include/qt/QtWidgets -isystem /usr/include/qt/QtGui -isystem /usr/include/qt/QtCore -isystem /usr/lib/qt/mkspecs/linux-g++ -O3 -DNDEBUG -std=gnu++14 -fPIC -o CMakeFiles/AUKFProject.dir/AUKFProject_autogen/mocs_compilation.cpp.o -c \"/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build/AUKFProject_autogen/mocs_compilation.cpp\"",
   "file": "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build/AUKFProject_autogen/mocs_compilation.cpp",
   "output": "CMakeFiles/AUKFProject.dir/AUKFProject_autogen/mocs_compilation.cpp.o"
 },
 {
   "directory": "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build",
-  "command": "/usr/bin/g++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -I\"/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build\" -I\"/home/aleff/Рабочий стол/progekts/AUKF/AUKF\" -I\"/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build/AUKFProject_autogen/include\" -I/usr/include/eigen3 -I/usr/include/qwt -I\"/home/aleff/Рабочий стол/progekts/AUKF/AUKF/src\" -isystem /usr/include/qt -isystem /usr/include/qt/QtWidgets -isystem /usr/include/qt/QtGui -isystem /usr/include/qt/QtCore -isystem /usr/lib/qt/mkspecs/linux-g++ -g -std=gnu++14 -fPIC -o CMakeFiles/AUKFProject.dir/src/main.cpp.o -c \"/home/aleff/Рабочий стол/progekts/AUKF/AUKF/src/main.cpp\"",
-  "file": "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/src/main.cpp",
-  "output": "CMakeFiles/AUKFProject.dir/src/main.cpp.o"
+  "command": "/usr/bin/c++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NO_DEBUG -DQT_WIDGETS_LIB -I\"/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build\" -I\"/home/aleff/Рабочий стол/progekts/AUKF/AUKF\" -I\"/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build/AUKFProject_autogen/include\" -I/usr/include/eigen3 -I/usr/include/qwt -isystem /usr/include/qt -isystem /usr/include/qt/QtWidgets -isystem /usr/include/qt/QtGui -isystem /usr/include/qt/QtCore -isystem /usr/lib/qt/mkspecs/linux-g++ -O3 -DNDEBUG -std=gnu++14 -fPIC -o CMakeFiles/AUKFProject.dir/main.cpp.o -c \"/home/aleff/Рабочий стол/progekts/AUKF/AUKF/main.cpp\"",
+  "file": "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/main.cpp",
+  "output": "CMakeFiles/AUKFProject.dir/main.cpp.o"
 },
 {
   "directory": "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build",
-  "command": "/usr/bin/g++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -I\"/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build\" -I\"/home/aleff/Рабочий стол/progekts/AUKF/AUKF\" -I\"/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build/AUKFProject_autogen/include\" -I/usr/include/eigen3 -I/usr/include/qwt -I\"/home/aleff/Рабочий стол/progekts/AUKF/AUKF/src\" -isystem /usr/include/qt -isystem /usr/include/qt/QtWidgets -isystem /usr/include/qt/QtGui -isystem /usr/include/qt/QtCore -isystem /usr/lib/qt/mkspecs/linux-g++ -g -std=gnu++14 -fPIC -o CMakeFiles/AUKFProject.dir/src/AdaptiveUnscentedKalmanFilter.cpp.o -c \"/home/aleff/Рабочий стол/progekts/AUKF/AUKF/src/AdaptiveUnscentedKalmanFilter.cpp\"",
-  "file": "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/src/AdaptiveUnscentedKalmanFilter.cpp",
-  "output": "CMakeFiles/AUKFProject.dir/src/AdaptiveUnscentedKalmanFilter.cpp.o"
+  "command": "/usr/bin/c++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NO_DEBUG -DQT_WIDGETS_LIB -I\"/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build\" -I\"/home/aleff/Рабочий стол/progekts/AUKF/AUKF\" -I\"/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build/AUKFProject_autogen/include\" -I/usr/include/eigen3 -I/usr/include/qwt -isystem /usr/include/qt -isystem /usr/include/qt/QtWidgets -isystem /usr/include/qt/QtGui -isystem /usr/include/qt/QtCore -isystem /usr/lib/qt/mkspecs/linux-g++ -O3 -DNDEBUG -std=gnu++14 -fPIC -o CMakeFiles/AUKFProject.dir/gui/MainWindow.cpp.o -c \"/home/aleff/Рабочий стол/progekts/AUKF/AUKF/gui/MainWindow.cpp\"",
+  "file": "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/gui/MainWindow.cpp",
+  "output": "CMakeFiles/AUKFProject.dir/gui/MainWindow.cpp.o"
 },
 {
   "directory": "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build",
-  "command": "/usr/bin/g++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -I\"/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build\" -I\"/home/aleff/Рабочий стол/progekts/AUKF/AUKF\" -I\"/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build/AUKFProject_autogen/include\" -I/usr/include/eigen3 -I/usr/include/qwt -I\"/home/aleff/Рабочий стол/progekts/AUKF/AUKF/src\" -isystem /usr/include/qt -isystem /usr/include/qt/QtWidgets -isystem /usr/include/qt/QtGui -isystem /usr/include/qt/QtCore -isystem /usr/lib/qt/mkspecs/linux-g++ -g -std=gnu++14 -fPIC -o CMakeFiles/AUKFProject.dir/src/BeamSimulation.cpp.o -c \"/home/aleff/Рабочий стол/progekts/AUKF/AUKF/src/BeamSimulation.cpp\"",
-  "file": "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/src/BeamSimulation.cpp",
-  "output": "CMakeFiles/AUKFProject.dir/src/BeamSimulation.cpp.o"
+  "command": "/usr/bin/c++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NO_DEBUG -DQT_WIDGETS_LIB -I\"/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build\" -I\"/home/aleff/Рабочий стол/progekts/AUKF/AUKF\" -I\"/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build/AUKFProject_autogen/include\" -I/usr/include/eigen3 -I/usr/include/qwt -isystem /usr/include/qt -isystem /usr/include/qt/QtWidgets -isystem /usr/include/qt/QtGui -isystem /usr/include/qt/QtCore -isystem /usr/lib/qt/mkspecs/linux-g++ -O3 -DNDEBUG -std=gnu++14 -fPIC -o CMakeFiles/AUKFProject.dir/filter/AdaptiveUnscentedKalmanFilter.cpp.o -c \"/home/aleff/Рабочий стол/progekts/AUKF/AUKF/filter/AdaptiveUnscentedKalmanFilter.cpp\"",
+  "file": "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/filter/AdaptiveUnscentedKalmanFilter.cpp",
+  "output": "CMakeFiles/AUKFProject.dir/filter/AdaptiveUnscentedKalmanFilter.cpp.o"
 },
 {
   "directory": "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build",
-  "command": "/usr/bin/g++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -I\"/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build\" -I\"/home/aleff/Рабочий стол/progekts/AUKF/AUKF\" -I\"/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build/AUKFProject_autogen/include\" -I/usr/include/eigen3 -I/usr/include/qwt -I\"/home/aleff/Рабочий стол/progekts/AUKF/AUKF/src\" -isystem /usr/include/qt -isystem /usr/include/qt/QtWidgets -isystem /usr/include/qt/QtGui -isystem /usr/include/qt/QtCore -isystem /usr/lib/qt/mkspecs/linux-g++ -g -std=gnu++14 -fPIC -o CMakeFiles/AUKFProject.dir/src/MainWindow.cpp.o -c \"/home/aleff/Рабочий стол/progekts/AUKF/AUKF/src/MainWindow.cpp\"",
-  "file": "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/src/MainWindow.cpp",
-  "output": "CMakeFiles/AUKFProject.dir/src/MainWindow.cpp.o"
+  "command": "/usr/bin/c++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NO_DEBUG -DQT_WIDGETS_LIB -I\"/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build\" -I\"/home/aleff/Рабочий стол/progekts/AUKF/AUKF\" -I\"/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build/AUKFProject_autogen/include\" -I/usr/include/eigen3 -I/usr/include/qwt -isystem /usr/include/qt -isystem /usr/include/qt/QtWidgets -isystem /usr/include/qt/QtGui -isystem /usr/include/qt/QtCore -isystem /usr/lib/qt/mkspecs/linux-g++ -O3 -DNDEBUG -std=gnu++14 -fPIC -o CMakeFiles/AUKFProject.dir/simulation/BeamSimulation.cpp.o -c \"/home/aleff/Рабочий стол/progekts/AUKF/AUKF/simulation/BeamSimulation.cpp\"",
+  "file": "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/simulation/BeamSimulation.cpp",
+  "output": "CMakeFiles/AUKFProject.dir/simulation/BeamSimulation.cpp.o"
+},
+{
+  "directory": "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build",
+  "command": "/usr/bin/c++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NO_DEBUG -DQT_WIDGETS_LIB -I\"/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build\" -I\"/home/aleff/Рабочий стол/progekts/AUKF/AUKF\" -I\"/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build/AUKFProject_autogen/include\" -I/usr/include/eigen3 -I/usr/include/qwt -isystem /usr/include/qt -isystem /usr/include/qt/QtWidgets -isystem /usr/include/qt/QtGui -isystem /usr/include/qt/QtCore -isystem /usr/lib/qt/mkspecs/linux-g++ -O3 -DNDEBUG -std=gnu++14 -fPIC -o CMakeFiles/AUKFProject.dir/io/DataLogger.cpp.o -c \"/home/aleff/Рабочий стол/progekts/AUKF/AUKF/io/DataLogger.cpp\"",
+  "file": "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/io/DataLogger.cpp",
+  "output": "CMakeFiles/AUKFProject.dir/io/DataLogger.cpp.o"
 }
 ]

@@ -10,10 +10,11 @@ set(CMAKE_DEPENDS_LANGUAGES
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "" "AUKFProject_autogen/timestamp" "custom" "AUKFProject_autogen/deps"
   "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build/AUKFProject_autogen/mocs_compilation.cpp" "CMakeFiles/AUKFProject.dir/AUKFProject_autogen/mocs_compilation.cpp.o" "gcc" "CMakeFiles/AUKFProject.dir/AUKFProject_autogen/mocs_compilation.cpp.o.d"
-  "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/src/AdaptiveUnscentedKalmanFilter.cpp" "CMakeFiles/AUKFProject.dir/src/AdaptiveUnscentedKalmanFilter.cpp.o" "gcc" "CMakeFiles/AUKFProject.dir/src/AdaptiveUnscentedKalmanFilter.cpp.o.d"
-  "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/src/BeamSimulation.cpp" "CMakeFiles/AUKFProject.dir/src/BeamSimulation.cpp.o" "gcc" "CMakeFiles/AUKFProject.dir/src/BeamSimulation.cpp.o.d"
-  "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/src/MainWindow.cpp" "CMakeFiles/AUKFProject.dir/src/MainWindow.cpp.o" "gcc" "CMakeFiles/AUKFProject.dir/src/MainWindow.cpp.o.d"
-  "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/src/main.cpp" "CMakeFiles/AUKFProject.dir/src/main.cpp.o" "gcc" "CMakeFiles/AUKFProject.dir/src/main.cpp.o.d"
+  "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/filter/AdaptiveUnscentedKalmanFilter.cpp" "CMakeFiles/AUKFProject.dir/filter/AdaptiveUnscentedKalmanFilter.cpp.o" "gcc" "CMakeFiles/AUKFProject.dir/filter/AdaptiveUnscentedKalmanFilter.cpp.o.d"
+  "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/gui/MainWindow.cpp" "CMakeFiles/AUKFProject.dir/gui/MainWindow.cpp.o" "gcc" "CMakeFiles/AUKFProject.dir/gui/MainWindow.cpp.o.d"
+  "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/io/DataLogger.cpp" "CMakeFiles/AUKFProject.dir/io/DataLogger.cpp.o" "gcc" "CMakeFiles/AUKFProject.dir/io/DataLogger.cpp.o.d"
+  "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/main.cpp" "CMakeFiles/AUKFProject.dir/main.cpp.o" "gcc" "CMakeFiles/AUKFProject.dir/main.cpp.o.d"
+  "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/simulation/BeamSimulation.cpp" "CMakeFiles/AUKFProject.dir/simulation/BeamSimulation.cpp.o" "gcc" "CMakeFiles/AUKFProject.dir/simulation/BeamSimulation.cpp.o.d"
   )
 
 # Targets to which this target links which contain Fortran sources.

@@ -71,7 +71,7 @@ CMakeFiles/AUKFProject_autogen: AUKFProject_autogen/timestamp
 AUKFProject_autogen/timestamp: /usr/bin/moc
 AUKFProject_autogen/timestamp: CMakeFiles/AUKFProject_autogen.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir="/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_1) "Automatic MOC for target AUKFProject"
-	/usr/bin/cmake -E cmake_autogen "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build/CMakeFiles/AUKFProject_autogen.dir/AutogenInfo.json" ""
+	/usr/bin/cmake -E cmake_autogen "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build/CMakeFiles/AUKFProject_autogen.dir/AutogenInfo.json" Release
 	/usr/bin/cmake -E touch "/home/aleff/Рабочий стол/progekts/AUKF/AUKF/build/AUKFProject_autogen/timestamp"
 
 AUKFProject_autogen: AUKFProject_autogen/timestamp
