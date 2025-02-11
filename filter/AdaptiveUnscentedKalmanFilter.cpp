@@ -85,7 +85,7 @@ void AdaptiveUnscentedKalmanFilter::update(const Eigen::VectorXd &measurement) {
     Eigen::MatrixXd K = P_XZ * P_ZZ.inverse();
     Eigen::VectorXd innovation = measurement - predicted_measurement;
 
-    // Сохраняем инновации
+    // Сохраняем инновации для адаптивной оценки
     innovation_history.push_back(innovation);
     if ((int)innovation_history.size() > adapt_window)
         innovation_history.pop_front();
@@ -94,7 +94,7 @@ void AdaptiveUnscentedKalmanFilter::update(const Eigen::VectorXd &measurement) {
     state = state + K * innovation;
     covariance = covariance - K * P_ZZ * K.transpose();
 
-    // Остаток
+    // Вычисляем остаток (residual) с использованием обновленного состояния
     Eigen::VectorXd residual = measurement - measurementFunction(state);
     residual_history.push_back(residual);
     if ((int)residual_history.size() > adapt_window)
@@ -104,6 +104,7 @@ void AdaptiveUnscentedKalmanFilter::update(const Eigen::VectorXd &measurement) {
     if ((int)measurement_history.size() > adapt_window)
         measurement_history.pop_front();
 
+    // Адаптивное обновление Q и R
     adaptProcessNoiseCovariance();
     adaptMeasurementNoiseCovariance();
 }
@@ -125,8 +126,10 @@ void AdaptiveUnscentedKalmanFilter::setMeasurementNoiseCovariance(const Eigen::M
 }
 
 void AdaptiveUnscentedKalmanFilter::computeSigmaPoints(std::vector<Eigen::VectorXd> &sigma_points) {
+    // Регуляризация ковариационной матрицы для гарантии положительной определенности
+    Eigen::MatrixXd cov_reg = covariance + Eigen::MatrixXd::Identity(n, n) * 1e-6;
     double scaling_factor = std::sqrt(n + lambda_);
-    Eigen::MatrixXd sqrt_covariance = covariance.llt().matrixL();
+    Eigen::MatrixXd sqrt_covariance = cov_reg.llt().matrixL();
 
     sigma_points[0] = state;
     for (int i = 0; i < n; ++i) {
@@ -136,13 +139,12 @@ void AdaptiveUnscentedKalmanFilter::computeSigmaPoints(std::vector<Eigen::Vector
 }
 
 Eigen::VectorXd AdaptiveUnscentedKalmanFilter::stateTransitionFunction(const Eigen::VectorXd &s) {
-    // Предполагаем стационарность: состояние - это интенсивности, которые не меняются в отсутствии входа
-    // При необходимости можно добавить логику изменения состояния.
+    // При отсутствии явной модели динамики используем тождественную функцию
     return s;
 }
 
 Eigen::VectorXd AdaptiveUnscentedKalmanFilter::measurementFunction(const Eigen::VectorXd &s) {
-    // Тождественная функция, измеряемые величины - это те же самые интенсивности
+    // Измеряемые величины совпадают с состоянием (интенсивности)
     return s;
 }
 
@@ -176,48 +178,57 @@ double AdaptiveUnscentedKalmanFilter::erfinv(double x) const {
 
     double a = 0.147;
     double ln = std::log(1 - x * x);
-    double term = (2 / (M_PI * a)) + (ln / 2);
+    double term = (2.0 / (M_PI * a)) + (ln / 2.0);
     double val = std::copysign(std::sqrt(std::sqrt(term * term - (ln / a)) - term), x);
     return val;
 }
 
 void AdaptiveUnscentedKalmanFilter::adaptProcessNoiseCovariance() {
-    // Примерная логика адаптации
-    if ((int)innovation_history.size() < adapt_window ||
-        (int)residual_history.size() < adapt_window) {
+    // Если недостаточно данных в истории, ничего не обновляем
+    if (innovation_history.size() < adapt_window || residual_history.size() < adapt_window)
         return;
-    }
 
-    Eigen::MatrixXd E_diff = Eigen::MatrixXd::Zero(m, m);
+    // Оценка Q на основе разности между остатками и инновациями
+    Eigen::MatrixXd Q_est = Eigen::MatrixXd::Zero(m, m);
     for (int i = 0; i < adapt_window; ++i) {
         Eigen::VectorXd diff = residual_history[i] - innovation_history[i];
-        E_diff += diff * diff.transpose();
+        Q_est += diff * diff.transpose();
     }
-    E_diff /= adapt_window;
+    Q_est /= adapt_window;
 
-    Eigen::MatrixXd H_k = Eigen::MatrixXd::Identity(m, n);
+    // Если Q предполагается диагональной, обновляем только диагональ с нижней границей
+    Eigen::MatrixXd Q_new = Eigen::MatrixXd::Zero(m, m);
+    for (int i = 0; i < m; ++i) {
+        Q_new(i, i) = std::max(Q_est(i, i), 1e-6);
+    }
 
-    Eigen::MatrixXd term = E_diff;
-    // Простейшая модель адаптации Q
-    // Возможно потребуется более точный метод.
-    process_noise_cov = term;
+    // Экспоненциальное сглаживание с коэффициентом адаптации gamma (например, 0.1)
+    double gamma = 0.1;
+    process_noise_cov = (1.0 - gamma) * process_noise_cov + gamma * Q_new;
+
+    // Опционально: можно вывести текущие значения Q для мониторинга
+    // std::cout << "Updated process_noise_cov (Q): " << process_noise_cov << std::endl;
 }
 
 void AdaptiveUnscentedKalmanFilter::adaptMeasurementNoiseCovariance() {
-    if ((int)innovation_history.size() < adapt_window) {
+    if (innovation_history.size() < adapt_window)
         return;
+
+    Eigen::MatrixXd innov_cov = Eigen::MatrixXd::Zero(m, m);
+    for (const auto& innov : innovation_history) {
+        innov_cov += innov * innov.transpose();
+    }
+    innov_cov /= innovation_history.size();
+
+    // Обновление R экспоненциальным сглаживанием (коэффициент beta_R, например, 0.1)
+    double beta_R = 0.1;
+    measurement_noise_cov = (1.0 - beta_R) * measurement_noise_cov + beta_R * innov_cov;
+
+    // Гарантируем, что диагональные элементы не опускаются ниже 1e-6
+    for (int i = 0; i < m; ++i) {
+        measurement_noise_cov(i, i) = std::max(measurement_noise_cov(i, i), 1e-6);
     }
 
-    Eigen::MatrixXd E_innovations = Eigen::MatrixXd::Zero(m, m);
-    int count = (int)innovation_history.size();
-    for (const auto& innovation : innovation_history) {
-        E_innovations += innovation * innovation.transpose();
-    }
-    E_innovations /= count;
-
-    double b = 0.95;
-    int k = (int)measurement_history.size();
-    double d_k = (1.0 - b) / (1.0 - std::pow(b, k + 1));
-
-    measurement_noise_cov = (1.0 - d_k) * measurement_noise_cov + d_k * E_innovations;
+    // Опционально: можно вывести текущие значения R для мониторинга
+    // std::cout << "Updated measurement_noise_cov (R): " << measurement_noise_cov << std::endl;
 }

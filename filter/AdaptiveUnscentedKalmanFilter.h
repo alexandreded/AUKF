@@ -23,17 +23,21 @@ public:
     void setProcessNoiseCovariance(const Eigen::MatrixXd &Q);
     void setMeasurementNoiseCovariance(const Eigen::MatrixXd &R);
 
-    // Расчет позиции пятна на основе состояний (интенсивностей)
+    // Расчёт позиции пятна на основе интенсивностей
     Eigen::Vector2d calculateSpotPosition(double w, double x0) const;
 
 private:
+    // Вычисление сигма-точек с регуляризацией
     void computeSigmaPoints(std::vector<Eigen::VectorXd> &sigma_points);
+    // Функции перехода и измерения (здесь – тождественные, так как явная динамика не задана)
     Eigen::VectorXd stateTransitionFunction(const Eigen::VectorXd &state);
     Eigen::VectorXd measurementFunction(const Eigen::VectorXd &state);
     
+    // Адаптивное обновление ковариаций процесса и измерения
     void adaptProcessNoiseCovariance();
     void adaptMeasurementNoiseCovariance();
 
+    // Вспомогательные функции для расчёта координат пятна
     double g(double Ex) const;
     double erfinv(double x) const;
 
