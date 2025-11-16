@@ -1,2 +1,0 @@
-# Hashes of file build rules.
-ccca7522bfb6d38affdc49b899e01205 AUKFProject_autogen/timestamp
