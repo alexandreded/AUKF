@@ -2,6 +2,8 @@
 #include <cmath>
 #include <algorithm>
 #include <iostream>
+#include <stdexcept>
+#include <limits>
 
 AdaptiveUnscentedKalmanFilter::AdaptiveUnscentedKalmanFilter(
         const Eigen::VectorXd &initial_state,
@@ -10,25 +12,48 @@ AdaptiveUnscentedKalmanFilter::AdaptiveUnscentedKalmanFilter(
         const Eigen::MatrixXd &measurement_noise_cov,
         double alpha, double beta, double kappa,
         int adapt_window)
-    : state(initial_state),
+    : n(0),
+      m(0),
+      sigma_point_count(0),
+      alpha(alpha), beta(beta), kappa(kappa), lambda_(0.0),
+      state(initial_state),
       covariance(initial_covariance),
       process_noise_cov(process_noise_cov),
       measurement_noise_cov(measurement_noise_cov),
-      alpha(alpha), beta(beta), kappa(kappa),
       adapt_window(adapt_window)
 {
     n = state.size();
-    m = measurement_noise_cov.rows();
+    if (n <= 0) {
+        throw std::invalid_argument("State vector must be non-empty.");
+    }
+    if (this->adapt_window <= 0) {
+        throw std::invalid_argument("Adaptation window must be positive.");
+    }
+    if (covariance.rows() != n || covariance.cols() != n) {
+        throw std::invalid_argument("Initial covariance must be NxN and match state size.");
+    }
+    if (this->process_noise_cov.rows() != n || this->process_noise_cov.cols() != n) {
+        throw std::invalid_argument("Process noise covariance must be NxN and match state size.");
+    }
+    if (this->measurement_noise_cov.rows() != n || this->measurement_noise_cov.cols() != n) {
+        throw std::invalid_argument("Measurement noise covariance must be NxN and match state size.");
+    }
+
+    m = this->measurement_noise_cov.rows();
     lambda_ = alpha * alpha * (n + kappa) - n;
+    const double n_plus_lambda = n + lambda_;
+    if (n_plus_lambda <= 1e-12) {
+        throw std::invalid_argument("Invalid UKF parameters: n + lambda must be positive.");
+    }
     sigma_point_count = 2 * n + 1;
 
     weights_mean.resize(sigma_point_count);
     weights_covariance.resize(sigma_point_count);
 
-    weights_mean[0] = lambda_ / (n + lambda_);
+    weights_mean[0] = lambda_ / n_plus_lambda;
     weights_covariance[0] = weights_mean[0] + (1 - alpha*alpha + beta);
     for (int i = 1; i < sigma_point_count; ++i) {
-        weights_mean[i] = 1.0 / (2 * (n + lambda_));
+        weights_mean[i] = 1.0 / (2 * n_plus_lambda);
         weights_covariance[i] = weights_mean[i];
     }
 }
@@ -52,6 +77,7 @@ void AdaptiveUnscentedKalmanFilter::predict() {
     }
 
     covariance = P_XX + process_noise_cov;
+    covariance = 0.5 * (covariance + covariance.transpose());
     state = predicted_state;
 }
 
@@ -82,8 +108,34 @@ void AdaptiveUnscentedKalmanFilter::update(const Eigen::VectorXd &measurement) {
         P_XZ += weights_covariance[i] * state_diff * meas_diff.transpose();
     }
 
-    Eigen::MatrixXd K = P_XZ * P_ZZ.inverse();
+    Eigen::MatrixXd P_ZZ_reg = 0.5 * (P_ZZ + P_ZZ.transpose());
+    P_ZZ_reg += Eigen::MatrixXd::Identity(m, m) * 1e-9;
+    Eigen::LDLT<Eigen::MatrixXd> ldlt(P_ZZ_reg);
+    if (ldlt.info() != Eigen::Success) {
+        P_ZZ_reg += Eigen::MatrixXd::Identity(m, m) * 1e-6;
+        ldlt.compute(P_ZZ_reg);
+    }
+    if (ldlt.info() != Eigen::Success) {
+        last_nis = std::numeric_limits<double>::quiet_NaN();
+        last_measurement_accepted = false;
+        return;
+    }
+
     Eigen::VectorXd innovation = measurement - predicted_measurement;
+    Eigen::VectorXd innovation_solved = ldlt.solve(innovation);
+    if (innovation_solved.hasNaN()) {
+        last_nis = std::numeric_limits<double>::quiet_NaN();
+        last_measurement_accepted = false;
+        return;
+    }
+    last_nis = innovation.dot(innovation_solved);
+    if (outlier_gate_enabled && std::isfinite(last_nis) && last_nis > outlier_nis_threshold) {
+        last_measurement_accepted = false;
+        return;
+    }
+    last_measurement_accepted = true;
+
+    Eigen::MatrixXd K = ldlt.solve(P_XZ.transpose()).transpose();
 
     // Сохраняем инновации для адаптивной оценки
     innovation_history.push_back(innovation);
@@ -92,7 +144,11 @@ void AdaptiveUnscentedKalmanFilter::update(const Eigen::VectorXd &measurement) {
 
     // Обновление состояния
     state = state + K * innovation;
-    covariance = covariance - K * P_ZZ * K.transpose();
+    covariance = covariance - K * P_ZZ_reg * K.transpose();
+    covariance = 0.5 * (covariance + covariance.transpose());
+    for (int i = 0; i < n; ++i) {
+        covariance(i, i) = std::max(covariance(i, i), 1e-9);
+    }
 
     // Вычисляем остаток (residual) с использованием обновленного состояния
     Eigen::VectorXd residual = measurement - measurementFunction(state);
@@ -125,11 +181,36 @@ void AdaptiveUnscentedKalmanFilter::setMeasurementNoiseCovariance(const Eigen::M
     measurement_noise_cov = R;
 }
 
+void AdaptiveUnscentedKalmanFilter::setOutlierGate(bool enabled, double nisThreshold) {
+    outlier_gate_enabled = enabled;
+    outlier_nis_threshold = std::max(1e-9, nisThreshold);
+}
+
 void AdaptiveUnscentedKalmanFilter::computeSigmaPoints(std::vector<Eigen::VectorXd> &sigma_points) {
     // Регуляризация ковариационной матрицы для гарантии положительной определенности
-    Eigen::MatrixXd cov_reg = covariance + Eigen::MatrixXd::Identity(n, n) * 1e-6;
-    double scaling_factor = std::sqrt(n + lambda_);
-    Eigen::MatrixXd sqrt_covariance = cov_reg.llt().matrixL();
+    Eigen::MatrixXd cov_reg = 0.5 * (covariance + covariance.transpose());
+    Eigen::MatrixXd identity = Eigen::MatrixXd::Identity(n, n);
+    Eigen::LLT<Eigen::MatrixXd> llt;
+    double jitter = 1e-9;
+    bool decomposition_ok = false;
+    for (int attempt = 0; attempt < 6; ++attempt) {
+        llt.compute(cov_reg + identity * jitter);
+        if (llt.info() == Eigen::Success) {
+            decomposition_ok = true;
+            break;
+        }
+        jitter *= 10.0;
+    }
+
+    Eigen::MatrixXd sqrt_covariance = Eigen::MatrixXd::Zero(n, n);
+    if (decomposition_ok) {
+        sqrt_covariance = llt.matrixL();
+    } else {
+        Eigen::VectorXd safe_diag = cov_reg.diagonal().cwiseMax(1e-6);
+        sqrt_covariance = safe_diag.cwiseSqrt().asDiagonal();
+    }
+
+    double scaling_factor = std::sqrt(std::max(n + lambda_, 1e-9));
 
     sigma_points[0] = state;
     for (int i = 0; i < n; ++i) {
@@ -168,6 +249,14 @@ Eigen::Vector2d AdaptiveUnscentedKalmanFilter::calculateSpotPosition(double w, d
     return Eigen::Vector2d(x, y);
 }
 
+double AdaptiveUnscentedKalmanFilter::getLastNIS() const {
+    return last_nis;
+}
+
+bool AdaptiveUnscentedKalmanFilter::wasLastMeasurementAccepted() const {
+    return last_measurement_accepted;
+}
+
 double AdaptiveUnscentedKalmanFilter::g(double Ex) const {
     return erfinv(Ex) / std::sqrt(2.0);
 }
@@ -185,7 +274,8 @@ double AdaptiveUnscentedKalmanFilter::erfinv(double x) const {
 
 void AdaptiveUnscentedKalmanFilter::adaptProcessNoiseCovariance() {
     // Если недостаточно данных в истории, ничего не обновляем
-    if (innovation_history.size() < adapt_window || residual_history.size() < adapt_window)
+    const std::size_t window_size = static_cast<std::size_t>(adapt_window);
+    if (innovation_history.size() < window_size || residual_history.size() < window_size)
         return;
 
     // Оценка Q на основе разности между остатками и инновациями
@@ -211,7 +301,8 @@ void AdaptiveUnscentedKalmanFilter::adaptProcessNoiseCovariance() {
 }
 
 void AdaptiveUnscentedKalmanFilter::adaptMeasurementNoiseCovariance() {
-    if (innovation_history.size() < adapt_window)
+    const std::size_t window_size = static_cast<std::size_t>(adapt_window);
+    if (innovation_history.size() < window_size)
         return;
 
     Eigen::MatrixXd innov_cov = Eigen::MatrixXd::Zero(m, m);

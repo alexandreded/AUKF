@@ -9,8 +9,7 @@
 #include <QTimer>
 
 #include "../Config.h"
-#include "../filter/AdaptiveUnscentedKalmanFilter.h"
-#include "../simulation/BeamSimulation.h"
+#include "../core/TrackingEngine.h"
 #include "../io/DataLogger.h"
 #include <Eigen/Dense>
 #include <qwt_plot.h>
@@ -35,19 +34,18 @@ private:
     void setupUI();
     void setupPlots();
     void initializeCurves();
+    void trimPlotBuffers();
     void showError(const QString &message);
     void validateInput();
     void loadRealData();
 
     Config config;
 
-    std::unique_ptr<AdaptiveUnscentedKalmanFilter> kalmanFilter;
-    std::unique_ptr<BeamSimulation> beamSimulation;
+    std::unique_ptr<TrackingEngine> trackingEngine;
     std::unique_ptr<DataLogger> dataLogger;
 
     // Данные для реального режима (if mode == "realtime")
     QVector<Eigen::VectorXd> loadedMeasurements;
-    int currentMeasurementIndex = 0;
 
     // UI элементы
     QLineEdit *alphaEdit;
@@ -55,6 +53,11 @@ private:
     QLineEdit *kappaEdit;
     QLineEdit *processNoiseEdit;
     QLineEdit *measurementNoiseEdit;
+    QCheckBox *outlierGatingCheck;
+    QLineEdit *outlierNisThresholdEdit;
+    QCheckBox *calibrationFeedbackCheck;
+    QLineEdit *calibrationRateEdit;
+    QLineEdit *calibrationToleranceEdit;
     QLineEdit *noiseLevelEdit;
     QLineEdit *gapSizeEdit;
 
@@ -83,15 +86,21 @@ private:
     QVector<double> filteredIntensityData[4];
     QVector<double> estimatedXData;
     QVector<double> estimatedYData;
+    QVector<double> truthTimeData;
     QVector<double> trueXData;
     QVector<double> trueYData;
+    QVector<double> errorTimeData;
     QVector<double> errorData;
 
     QLabel *totalErrorLabel;
     QLabel *recentErrorLabel;
+    QLabel *nisLabel;
+    QLabel *acceptanceLabel;
+    QLabel *calibrationStatusLabel;
+    QLabel *calibrationGainsLabel;
+    QLabel *hardwareFeedbackLabel;
 
     QTimer *updateTimer;
-    double currentTime;
     int iteration;
     bool isRunning;
 };

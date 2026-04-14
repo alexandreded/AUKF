@@ -6,7 +6,8 @@
 
 class BeamSimulation {
 public:
-    BeamSimulation(double noiseLevel, double gapSize, double timeStep, double speed);
+    BeamSimulation(double noiseLevel, double gapSize, double timeStep, double speed,
+                   unsigned int seed = 0, bool deterministic = false);
 
     void reset();
     Eigen::VectorXd moveBeamAndIntegrate(double P0, double w);

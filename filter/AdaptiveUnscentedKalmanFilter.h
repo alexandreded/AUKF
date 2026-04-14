@@ -3,6 +3,7 @@
 
 #include <Eigen/Dense>
 #include <deque>
+#include <limits>
 #include <vector>
 
 class AdaptiveUnscentedKalmanFilter {
@@ -22,9 +23,12 @@ public:
 
     void setProcessNoiseCovariance(const Eigen::MatrixXd &Q);
     void setMeasurementNoiseCovariance(const Eigen::MatrixXd &R);
+    void setOutlierGate(bool enabled, double nisThreshold);
 
     // Расчёт позиции пятна на основе интенсивностей
     Eigen::Vector2d calculateSpotPosition(double w, double x0) const;
+    double getLastNIS() const;
+    bool wasLastMeasurementAccepted() const;
 
 private:
     // Вычисление сигма-точек с регуляризацией
@@ -61,6 +65,10 @@ private:
     std::deque<Eigen::VectorXd> measurement_history; 
 
     int adapt_window;
+    bool outlier_gate_enabled = false;
+    double outlier_nis_threshold = 13.2767;
+    double last_nis = std::numeric_limits<double>::quiet_NaN();
+    bool last_measurement_accepted = true;
 };
 
 #endif // ADAPTIVE_UNSCENTED_KALMAN_FILTER_H

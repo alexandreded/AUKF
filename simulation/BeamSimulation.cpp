@@ -2,13 +2,18 @@
 #include <algorithm>
 #include <cmath>
 
-BeamSimulation::BeamSimulation(double noiseLevel, double gapSize, double timeStep, double speed)
+BeamSimulation::BeamSimulation(double noiseLevel, double gapSize, double timeStep, double speed,
+                               unsigned int seed, bool deterministic)
     : x_c(0.0), y_c(0.0), k_x(1), k_y(-1),
       noiseLevel(noiseLevel), gapSize(gapSize),
       timeStep(timeStep), speed(speed),
       noiseDistribution(0.0, noiseLevel)
 {
-    generator.seed(std::random_device{}());
+    if (deterministic) {
+        generator.seed(seed);
+    } else {
+        generator.seed(std::random_device{}());
+    }
 }
 
 void BeamSimulation::reset() {
@@ -33,9 +38,14 @@ double BeamSimulation::gaussianBeam(double x, double y, double P0, double x_c, d
 
 double BeamSimulation::integrateIntensity(double x_min, double x_max, double y_min, double y_max,
                                           double P0, double x_c, double y_c, double w) {
+    if (w <= 0.0) {
+        return 0.0;
+    }
+
     // Аналитическое интегрирование гауссианы через erf
     double sqrt2 = std::sqrt(2.0);
     double sigma = w / sqrt2;
+    constexpr double kPi = 3.14159265358979323846;
 
     auto erf_func = [](double x){return std::erf(x);};
 
@@ -47,7 +57,7 @@ double BeamSimulation::integrateIntensity(double x_min, double x_max, double y_m
     double erf_x = erf_func(arg_x_max) - erf_func(arg_x_min);
     double erf_y = erf_func(arg_y_max) - erf_func(arg_y_min);
 
-    double integral = (P0 / 4.0) * erf_x * erf_y;
+    double integral = P0 * (kPi * sigma * sigma / 4.0) * erf_x * erf_y;
     return integral;
 }
 

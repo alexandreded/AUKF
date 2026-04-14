@@ -168,3 +168,4 @@ build
 *.idx
 *.json
 
+.codex

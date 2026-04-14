@@ -1,26 +1,29 @@
 #include "MainWindow.h"
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QGroupBox>
-#include <QLabel>
-#include <QPushButton>
-#include <QMessageBox>
+#include <QDateTime>
 #include <QDoubleValidator>
-#include <QScreen>
-#include <QGuiApplication>
 #include <QFile>
-#include <QJsonDocument>
+#include <QGridLayout>
+#include <QGroupBox>
+#include <QGuiApplication>
+#include <QHBoxLayout>
 #include <QJsonArray>
+#include <QJsonDocument>
 #include <QJsonObject>
-#include <cmath>
+#include <QMessageBox>
+#include <QPushButton>
+#include <QScreen>
+#include <QVBoxLayout>
 #include <algorithm>
-#include <qwt_plot_zoomer.h>
-#include <qwt_plot_panner.h>
+#include <cmath>
+#include <limits>
+#include <string>
+#include <vector>
 #include <qwt_legend.h>
+#include <qwt_plot_panner.h>
+#include <qwt_plot_zoomer.h>
 
 MainWindow::MainWindow(const Config &cfg, QWidget *parent)
-    : QMainWindow(parent), config(cfg),
-      currentTime(0.0), iteration(0), isRunning(false)
+    : QMainWindow(parent), config(cfg), iteration(0), isRunning(false)
 {
     setupUI();
     setupPlots();
@@ -28,9 +31,46 @@ MainWindow::MainWindow(const Config &cfg, QWidget *parent)
     dataLogger = std::make_unique<DataLogger>(
                 QString::fromStdString(config.logFileName),
                 QString::fromStdString(config.jsonOutputFile));
+
+    QJsonObject metadata;
+    metadata["app"] = "AUKFProject";
+    metadata["created_at_utc"] = QDateTime::currentDateTimeUtc().toString(Qt::ISODate);
+    metadata["mode"] = QString::fromStdString(config.mode);
+    metadata["alpha"] = config.alpha;
+    metadata["beta"] = config.beta;
+    metadata["kappa"] = config.kappa;
+    metadata["process_noise"] = config.processNoise;
+    metadata["measurement_noise"] = config.measurementNoise;
+    metadata["enable_outlier_gating"] = config.enableOutlierGating;
+    metadata["outlier_nis_threshold"] = config.outlierNisThreshold;
+    metadata["enable_calibration_feedback"] = config.enableCalibrationFeedback;
+    metadata["calibration_feedback_rate"] = config.calibrationFeedbackRate;
+    metadata["calibration_target_tolerance"] = config.calibrationTargetTolerance;
+    metadata["calibration_stable_window"] = config.calibrationStableWindow;
+    metadata["calibration_only_accepted_measurements"] = config.calibrationOnlyAcceptedMeasurements;
+    metadata["calibration_drive_hardware"] = config.calibrationDriveHardware;
+    metadata["hardware_feedback_deadband"] = config.hardwareFeedbackDeadband;
+    metadata["hardware_frequency_feedback_mhz_per_error"] = config.hardwareFrequencyFeedbackMHzPerError;
+    metadata["hardware_amplitude_feedback_per_error"] = config.hardwareAmplitudeFeedbackPerError;
+    metadata["deterministic_simulation"] = config.deterministicSimulation;
+    metadata["simulation_seed"] = static_cast<int>(config.simulationSeed);
+    metadata["max_plot_points"] = config.maxPlotPoints;
+    metadata["timer_interval_ms"] = config.timerIntervalMs;
+    metadata["hardware_serial_number"] = config.hardwareSerialNumber;
+    metadata["hardware_apply_output_on_connect"] = config.hardwareApplyOutputOnConnect;
+    QJsonArray hwFreq;
+    QJsonArray hwAmp;
+    for (int i = 0; i < 4; ++i) {
+        hwFreq.append(config.hardwareFrequenciesMHz[static_cast<std::size_t>(i)]);
+        hwAmp.append(config.hardwareAmplitudes[static_cast<std::size_t>(i)]);
+    }
+    metadata["hardware_frequencies_mhz"] = hwFreq;
+    metadata["hardware_amplitudes"] = hwAmp;
+    dataLogger->setMetadata(metadata);
+
     dataLogger->logMessage("Application started");
 
-    if (config.mode == "realtime") {
+    if (config.mode == "realtime" || config.mode == "hardware") {
         loadRealData();
     }
 
@@ -58,12 +98,22 @@ void MainWindow::setupUI() {
     kappaEdit = new QLineEdit(QString::number(config.kappa));
     processNoiseEdit = new QLineEdit(QString::number(config.processNoise));
     measurementNoiseEdit = new QLineEdit(QString::number(config.measurementNoise));
+    outlierGatingCheck = new QCheckBox("Включить gating по NIS");
+    outlierGatingCheck->setChecked(config.enableOutlierGating);
+    outlierNisThresholdEdit = new QLineEdit(QString::number(config.outlierNisThreshold));
+    calibrationFeedbackCheck = new QCheckBox("Режим калибровки (feedback)");
+    calibrationFeedbackCheck->setChecked(config.enableCalibrationFeedback);
+    calibrationRateEdit = new QLineEdit(QString::number(config.calibrationFeedbackRate));
+    calibrationToleranceEdit = new QLineEdit(QString::number(config.calibrationTargetTolerance));
 
     alphaEdit->setValidator(validator);
     betaEdit->setValidator(validator);
     kappaEdit->setValidator(validator);
     processNoiseEdit->setValidator(validator);
     measurementNoiseEdit->setValidator(validator);
+    outlierNisThresholdEdit->setValidator(validator);
+    calibrationRateEdit->setValidator(validator);
+    calibrationToleranceEdit->setValidator(validator);
 
     filterLayout->addWidget(new QLabel("Alpha:"), 0, 0);
     filterLayout->addWidget(alphaEdit, 0, 1);
@@ -75,6 +125,14 @@ void MainWindow::setupUI() {
     filterLayout->addWidget(processNoiseEdit, 3, 1);
     filterLayout->addWidget(new QLabel("Measurement Noise:"), 4, 0);
     filterLayout->addWidget(measurementNoiseEdit, 4, 1);
+    filterLayout->addWidget(outlierGatingCheck, 5, 0, 1, 2);
+    filterLayout->addWidget(new QLabel("NIS Threshold:"), 6, 0);
+    filterLayout->addWidget(outlierNisThresholdEdit, 6, 1);
+    filterLayout->addWidget(calibrationFeedbackCheck, 7, 0, 1, 2);
+    filterLayout->addWidget(new QLabel("Calibration Rate:"), 8, 0);
+    filterLayout->addWidget(calibrationRateEdit, 8, 1);
+    filterLayout->addWidget(new QLabel("Calibration Tolerance:"), 9, 0);
+    filterLayout->addWidget(calibrationToleranceEdit, 9, 1);
 
     filterGroupBox->setLayout(filterLayout);
 
@@ -109,9 +167,13 @@ void MainWindow::setupUI() {
     buttonLayout->addWidget(stopButton);
     buttonLayout->addWidget(resetButton);
 
-    for (auto *edit : {alphaEdit, betaEdit, kappaEdit, processNoiseEdit, measurementNoiseEdit, noiseLevelEdit, gapSizeEdit}) {
+    for (auto *edit : {alphaEdit, betaEdit, kappaEdit, processNoiseEdit, measurementNoiseEdit,
+                       outlierNisThresholdEdit, calibrationRateEdit, calibrationToleranceEdit,
+                       noiseLevelEdit, gapSizeEdit}) {
         connect(edit, &QLineEdit::editingFinished, this, &MainWindow::onParametersChanged);
     }
+    connect(outlierGatingCheck, &QCheckBox::toggled, this, &MainWindow::onParametersChanged);
+    connect(calibrationFeedbackCheck, &QCheckBox::toggled, this, &MainWindow::onParametersChanged);
 
     QGroupBox *intensityGroupBox = new QGroupBox("Отображение интенсивностей");
     QHBoxLayout *intensityLayout = new QHBoxLayout();
@@ -121,20 +183,30 @@ void MainWindow::setupUI() {
         intensityCheckBoxes[i]->setChecked(true);
         intensityLayout->addWidget(intensityCheckBoxes[i]);
         int index = i;
-        connect(intensityCheckBoxes[i], &QCheckBox::toggled, [this,index](bool checked){
-            onIntensityCurveToggled(index,checked);
+        connect(intensityCheckBoxes[i], &QCheckBox::toggled, [this, index](bool checked){
+            onIntensityCurveToggled(index, checked);
         });
     }
     intensityGroupBox->setLayout(intensityLayout);
 
     totalErrorLabel = new QLabel("Средняя ошибка за всё время: 0.0");
     recentErrorLabel = new QLabel("Средняя ошибка за последние 3 секунды: 0.0");
+    nisLabel = new QLabel("Последний NIS: N/A");
+    acceptanceLabel = new QLabel("Последнее измерение: N/A");
+    calibrationStatusLabel = new QLabel("Калибровка: выключена");
+    calibrationGainsLabel = new QLabel("Коэффициенты каналов: 1.000 1.000 1.000 1.000");
+    hardwareFeedbackLabel = new QLabel("Аппаратная ОС: неактивна");
 
     QVBoxLayout *errorLabelsLayout = new QVBoxLayout();
     errorLabelsLayout->addWidget(totalErrorLabel);
     errorLabelsLayout->addWidget(recentErrorLabel);
+    errorLabelsLayout->addWidget(nisLabel);
+    errorLabelsLayout->addWidget(acceptanceLabel);
+    errorLabelsLayout->addWidget(calibrationStatusLabel);
+    errorLabelsLayout->addWidget(calibrationGainsLabel);
+    errorLabelsLayout->addWidget(hardwareFeedbackLabel);
 
-    QGroupBox *errorGroupBox = new QGroupBox("Ошибки");
+    QGroupBox *errorGroupBox = new QGroupBox("Ошибки и диагностика");
     errorGroupBox->setLayout(errorLabelsLayout);
 
     rawIntensityPlot = new QwtPlot(this);
@@ -162,7 +234,6 @@ void MainWindow::setupUI() {
     errorPlot->setAxisTitle(QwtPlot::xBottom, "Время");
     errorPlot->setAxisTitle(QwtPlot::yLeft, "Ошибка");
 
-    // Зум и панорамирование
     new QwtPlotZoomer(rawIntensityPlot->canvas());
     new QwtPlotPanner(rawIntensityPlot->canvas());
     new QwtPlotZoomer(filteredIntensityPlot->canvas());
@@ -196,7 +267,7 @@ void MainWindow::setupUI() {
 
     setCentralWidget(centralWidget);
 
-    setMinimumSize(800,600);
+    setMinimumSize(800, 600);
     QScreen *screen = QGuiApplication::primaryScreen();
     QRect screenGeometry = screen->geometry();
     int height = screenGeometry.height();
@@ -207,12 +278,12 @@ void MainWindow::setupUI() {
 void MainWindow::setupPlots() {
     QColor colors[4] = {Qt::red, Qt::blue, Qt::green, Qt::magenta};
     for (int i = 0; i < 4; ++i) {
-        rawIntensityCurves[i] = new QwtPlotCurve(QString("Raw I%1").arg(i+1));
+        rawIntensityCurves[i] = new QwtPlotCurve(QString("Raw I%1").arg(i + 1));
         rawIntensityCurves[i]->attach(rawIntensityPlot);
         rawIntensityCurves[i]->setPen(QPen(colors[i]));
         rawIntensityCurves[i]->setVisible(intensityCheckBoxes[i]->isChecked());
 
-        filteredIntensityCurves[i] = new QwtPlotCurve(QString("Filtered I%1").arg(i+1));
+        filteredIntensityCurves[i] = new QwtPlotCurve(QString("Filtered I%1").arg(i + 1));
         filteredIntensityCurves[i]->attach(filteredIntensityPlot);
         filteredIntensityCurves[i]->setPen(QPen(colors[i]));
         filteredIntensityCurves[i]->setVisible(intensityCheckBoxes[i]->isChecked());
@@ -249,9 +320,36 @@ void MainWindow::initializeCurves() {
     }
     estimatedXData.clear();
     estimatedYData.clear();
+    truthTimeData.clear();
     trueXData.clear();
     trueYData.clear();
+    errorTimeData.clear();
     errorData.clear();
+}
+
+void MainWindow::trimPlotBuffers() {
+    const int maxPoints = std::max(100, config.maxPlotPoints);
+
+    auto trimVec = [maxPoints](QVector<double> &vec) {
+        if (vec.size() > maxPoints) {
+            vec.remove(0, vec.size() - maxPoints);
+        }
+    };
+
+    trimVec(timeData);
+    for (int i = 0; i < 4; ++i) {
+        trimVec(rawIntensityData[i]);
+        trimVec(filteredIntensityData[i]);
+    }
+    trimVec(estimatedXData);
+    trimVec(estimatedYData);
+
+    trimVec(truthTimeData);
+    trimVec(trueXData);
+    trimVec(trueYData);
+
+    trimVec(errorTimeData);
+    trimVec(errorData);
 }
 
 void MainWindow::showError(const QString &message) {
@@ -261,20 +359,33 @@ void MainWindow::showError(const QString &message) {
 void MainWindow::validateInput() {
     bool ok;
     double val;
-    val = alphaEdit->text().toDouble(&ok);
-    if (!ok || val <= 0) throw std::runtime_error("Некорректное значение Alpha.");
+    double alphaValue = alphaEdit->text().toDouble(&ok);
+    if (!ok || alphaValue <= 0) throw std::runtime_error("Некорректное значение Alpha.");
 
     val = betaEdit->text().toDouble(&ok);
     if (!ok || val <= 0) throw std::runtime_error("Некорректное значение Beta.");
 
-    val = kappaEdit->text().toDouble(&ok);
+    double kappaValue = kappaEdit->text().toDouble(&ok);
     if (!ok) throw std::runtime_error("Некорректное значение Kappa.");
+    constexpr double ukfStateSize = 4.0;
+    if (alphaValue * alphaValue * (ukfStateSize + kappaValue) <= 0.0) {
+        throw std::runtime_error("Некорректный Kappa: для UKF должно выполняться alpha^2 * (n + kappa) > 0, где n=4.");
+    }
 
     val = processNoiseEdit->text().toDouble(&ok);
     if (!ok || val < 0) throw std::runtime_error("Некорректное значение Process Noise.");
 
     val = measurementNoiseEdit->text().toDouble(&ok);
     if (!ok || val < 0) throw std::runtime_error("Некорректное значение Measurement Noise.");
+
+    val = outlierNisThresholdEdit->text().toDouble(&ok);
+    if (!ok || val <= 0) throw std::runtime_error("Некорректное значение NIS Threshold.");
+
+    val = calibrationRateEdit->text().toDouble(&ok);
+    if (!ok || val < 0.0 || val > 1.0) throw std::runtime_error("Некорректное значение Calibration Rate (должно быть в диапазоне [0,1]).");
+
+    val = calibrationToleranceEdit->text().toDouble(&ok);
+    if (!ok || val <= 0.0) throw std::runtime_error("Некорректное значение Calibration Tolerance.");
 
     val = noiseLevelEdit->text().toDouble(&ok);
     if (!ok || val < 0) throw std::runtime_error("Некорректное значение Noise Level.");
@@ -286,12 +397,16 @@ void MainWindow::validateInput() {
 void MainWindow::onParametersChanged() {
     if (isRunning) return;
 
-    // Обновляем config из UI
     config.alpha = alphaEdit->text().toDouble();
     config.beta = betaEdit->text().toDouble();
     config.kappa = kappaEdit->text().toDouble();
     config.processNoise = processNoiseEdit->text().toDouble();
     config.measurementNoise = measurementNoiseEdit->text().toDouble();
+    config.enableOutlierGating = outlierGatingCheck->isChecked();
+    config.outlierNisThreshold = outlierNisThresholdEdit->text().toDouble();
+    config.enableCalibrationFeedback = calibrationFeedbackCheck->isChecked();
+    config.calibrationFeedbackRate = calibrationRateEdit->text().toDouble();
+    config.calibrationTargetTolerance = calibrationToleranceEdit->text().toDouble();
     config.noiseLevel = noiseLevelEdit->text().toDouble();
     config.gapSize = gapSizeEdit->text().toDouble();
 }
@@ -309,50 +424,63 @@ void MainWindow::startSimulation() {
         return;
     }
 
+    onParametersChanged();
+
+    std::vector<Eigen::VectorXd> realtimeMeasurements;
+    realtimeMeasurements.reserve(static_cast<std::size_t>(loadedMeasurements.size()));
+    for (const auto &measurement : loadedMeasurements) {
+        realtimeMeasurements.push_back(measurement);
+    }
+
+    trackingEngine = std::make_unique<TrackingEngine>(config);
+    std::string initError;
+    if (!trackingEngine->initialize(realtimeMeasurements, initError)) {
+        showError(QString::fromStdString(initError));
+        trackingEngine.reset();
+        return;
+    }
+
     alphaEdit->setEnabled(false);
     betaEdit->setEnabled(false);
     kappaEdit->setEnabled(false);
     processNoiseEdit->setEnabled(false);
     measurementNoiseEdit->setEnabled(false);
+    outlierGatingCheck->setEnabled(false);
+    outlierNisThresholdEdit->setEnabled(false);
+    calibrationFeedbackCheck->setEnabled(false);
+    calibrationRateEdit->setEnabled(false);
+    calibrationToleranceEdit->setEnabled(false);
     noiseLevelEdit->setEnabled(false);
     gapSizeEdit->setEnabled(false);
     for (int i = 0; i < 4; ++i) {
         intensityCheckBoxes[i]->setEnabled(false);
     }
 
-    onParametersChanged();
-
-    Eigen::VectorXd initial_measurement(4);
-    if (config.mode == "simulation") {
-        beamSimulation = std::make_unique<BeamSimulation>(config.noiseLevel, config.gapSize, config.timeStep, config.beamSpeed);
-        initial_measurement = beamSimulation->moveBeamAndIntegrate(config.beamPower, config.beamWidth);
-    } else {
-        // real-time: берем первый измерение из loadedMeasurements
-        if (loadedMeasurements.isEmpty()) {
-            showError("Нет данных для real-time режима.");
-            return;
-        }
-        currentMeasurementIndex = 0;
-        initial_measurement = loadedMeasurements[currentMeasurementIndex++];
-    }
-
-    Eigen::VectorXd initial_state = initial_measurement;
-    Eigen::MatrixXd initial_cov = Eigen::MatrixXd::Identity(4,4);
-    Eigen::MatrixXd Q = Eigen::MatrixXd::Identity(4,4)*config.processNoise;
-    Eigen::MatrixXd R = Eigen::MatrixXd::Identity(4,4)*config.measurementNoise;
-
-    kalmanFilter = std::make_unique<AdaptiveUnscentedKalmanFilter>(initial_state, initial_cov, Q, R, config.alpha, config.beta, config.kappa);
-
-    currentTime = 0.0;
     iteration = 0;
     initializeCurves();
+    if (config.mode == "simulation") {
+        totalErrorLabel->setText("Средняя ошибка за всё время: 0.0");
+        recentErrorLabel->setText("Средняя ошибка за последние 3 секунды: 0.0");
+    } else {
+        totalErrorLabel->setText("Средняя ошибка за всё время: N/A (нет ground truth)");
+        recentErrorLabel->setText("Средняя ошибка за последние 3 секунды: N/A (нет ground truth)");
+    }
+    nisLabel->setText("Последний NIS: N/A");
+    acceptanceLabel->setText("Последнее измерение: N/A");
+    if (config.enableCalibrationFeedback) {
+        calibrationStatusLabel->setText("Калибровка: активна");
+    } else {
+        calibrationStatusLabel->setText("Калибровка: выключена");
+    }
+    calibrationGainsLabel->setText("Коэффициенты каналов: 1.000 1.000 1.000 1.000");
+    hardwareFeedbackLabel->setText("Аппаратная ОС: неактивна");
 
     isRunning = true;
     startButton->setEnabled(false);
     stopButton->setEnabled(true);
     resetButton->setEnabled(true);
 
-    updateTimer->start(10);
+    updateTimer->start(std::max(1, config.timerIntervalMs));
 }
 
 void MainWindow::stopSimulation() {
@@ -369,11 +497,18 @@ void MainWindow::stopSimulation() {
     kappaEdit->setEnabled(true);
     processNoiseEdit->setEnabled(true);
     measurementNoiseEdit->setEnabled(true);
+    outlierGatingCheck->setEnabled(true);
+    outlierNisThresholdEdit->setEnabled(true);
+    calibrationFeedbackCheck->setEnabled(true);
+    calibrationRateEdit->setEnabled(true);
+    calibrationToleranceEdit->setEnabled(true);
     noiseLevelEdit->setEnabled(true);
     gapSizeEdit->setEnabled(true);
     for (int i = 0; i < 4; ++i) {
         intensityCheckBoxes[i]->setEnabled(true);
     }
+
+    trackingEngine.reset();
 
     startButton->setEnabled(true);
     stopButton->setEnabled(false);
@@ -389,13 +524,27 @@ void MainWindow::resetSimulation() {
     estimatedCoordinatePlot->replot();
     trueCoordinatePlot->replot();
     errorPlot->replot();
-    totalErrorLabel->setText("Средняя ошибка за всё время: 0.0");
-    recentErrorLabel->setText("Средняя ошибка за последние 3 секунды: 0.0");
+    if (config.mode == "simulation") {
+        totalErrorLabel->setText("Средняя ошибка за всё время: 0.0");
+        recentErrorLabel->setText("Средняя ошибка за последние 3 секунды: 0.0");
+    } else {
+        totalErrorLabel->setText("Средняя ошибка за всё время: N/A (нет ground truth)");
+        recentErrorLabel->setText("Средняя ошибка за последние 3 секунды: N/A (нет ground truth)");
+    }
+    nisLabel->setText("Последний NIS: N/A");
+    acceptanceLabel->setText("Последнее измерение: N/A");
+    if (config.enableCalibrationFeedback) {
+        calibrationStatusLabel->setText("Калибровка: активна");
+    } else {
+        calibrationStatusLabel->setText("Калибровка: выключена");
+    }
+    calibrationGainsLabel->setText("Коэффициенты каналов: 1.000 1.000 1.000 1.000");
+    hardwareFeedbackLabel->setText("Аппаратная ОС: неактивна");
     resetButton->setEnabled(false);
 }
 
 void MainWindow::onIntensityCurveToggled(int index, bool checked) {
-    if (index>=0 && index<4) {
+    if (index >= 0 && index < 4) {
         rawIntensityCurves[index]->setVisible(checked);
         filteredIntensityCurves[index]->setVisible(checked);
         rawIntensityPlot->replot();
@@ -404,104 +553,125 @@ void MainWindow::onIntensityCurveToggled(int index, bool checked) {
 }
 
 void MainWindow::updatePlots() {
-    if (!isRunning) return;
+    if (!isRunning || !trackingEngine) return;
 
-    currentTime += config.timeStep;
-    timeData.append(currentTime);
-
-    Eigen::VectorXd measurement(4);
-    double trueX, trueY;
-
-    if (config.mode == "simulation") {
-        measurement = beamSimulation->moveBeamAndIntegrate(config.beamPower, config.beamWidth);
-        trueX = beamSimulation->getXc();
-        trueY = beamSimulation->getYc();
-    } else {
-        if (currentMeasurementIndex >= loadedMeasurements.size()) {
-            // Данные закончились
-            stopSimulation();
-            return;
+    TrackingStepResult stepResult;
+    std::string error;
+    if (!trackingEngine->step(stepResult, error)) {
+        if (!error.empty()) {
+            dataLogger->logMessage(QString("Engine step failed: %1").arg(QString::fromStdString(error)));
+            showError(QString::fromStdString(error));
         }
-        measurement = loadedMeasurements[currentMeasurementIndex++];
-        // Для "реальных" данных у нас может не быть trueX и trueY. 
-        // Допустим, их нет. Можно поставить 0 или придумать другой способ.
-        trueX = 0.0;
-        trueY = 0.0;
-    }
-
-    if (measurement.hasNaN()) {
-        dataLogger->logMessage("Measurement contains NaN");
-        iteration++;
+        stopSimulation();
         return;
     }
 
-    kalmanFilter->predict();
-    kalmanFilter->update(measurement);
-
-    Eigen::VectorXd currentState = kalmanFilter->getState();
-    if (currentState.hasNaN()) {
-        dataLogger->logMessage("Kalman Filter state contains NaN!");
-        iteration++;
-        return;
+    if (!stepResult.measurementAccepted) {
+        dataLogger->logMessage(QString("Measurement rejected by NIS gating. NIS=%1").arg(stepResult.nis));
     }
 
-    for (int i =0; i<4; ++i) {
-        rawIntensityData[i].append(measurement(i));
-        filteredIntensityData[i].append(currentState(i));
+    timeData.append(stepResult.time);
+    for (int i = 0; i < 4; ++i) {
+        rawIntensityData[i].append(stepResult.rawMeasurement(i));
+        filteredIntensityData[i].append(stepResult.filteredState(i));
     }
 
-    Eigen::Vector2d spot_position = kalmanFilter->calculateSpotPosition(config.beamWidth, config.x0);
-    double estimatedX = spot_position(0);
-    double estimatedY = spot_position(1);
+    estimatedXData.append(stepResult.estimatedX);
+    estimatedYData.append(stepResult.estimatedY);
 
-    bool invalidCoordinates = std::isnan(estimatedX) || std::isnan(estimatedY) ||
-                              std::isnan(trueX) || std::isnan(trueY) ||
-                              std::isinf(estimatedX) || std::isinf(estimatedY) ||
-                              std::isinf(trueX) || std::isinf(trueY);
-
-    double errorVal = 0.0;
-    if (!invalidCoordinates) {
-        errorVal = std::sqrt(std::pow(estimatedX - trueX, 2) + std::pow(estimatedY - trueY, 2));
+    if (stepResult.hasGroundTruth) {
+        truthTimeData.append(stepResult.time);
+        trueXData.append(stepResult.trueX);
+        trueYData.append(stepResult.trueY);
+        if (stepResult.errorValid && std::isfinite(stepResult.error)) {
+            errorTimeData.append(stepResult.time);
+            errorData.append(stepResult.error);
+        }
     }
 
-    trueXData.append(trueX);
-    trueYData.append(trueY);
-    estimatedXData.append(estimatedX);
-    estimatedYData.append(estimatedY);
-    errorData.append(errorVal);
+    trimPlotBuffers();
 
-    // Обновляем кривые
-    for (int i =0; i<4; ++i) {
+    for (int i = 0; i < 4; ++i) {
         rawIntensityCurves[i]->setSamples(timeData, rawIntensityData[i]);
         filteredIntensityCurves[i]->setSamples(timeData, filteredIntensityData[i]);
     }
 
     estimatedPositionCurveX->setSamples(timeData, estimatedXData);
     estimatedPositionCurveY->setSamples(timeData, estimatedYData);
-    truePositionCurveX->setSamples(timeData, trueXData);
-    truePositionCurveY->setSamples(timeData, trueYData);
-    errorCurve->setSamples(timeData, errorData);
+    truePositionCurveX->setSamples(truthTimeData, trueXData);
+    truePositionCurveY->setSamples(truthTimeData, trueYData);
+    errorCurve->setSamples(errorTimeData, errorData);
 
-    double totalError = 0.0;
-    for (double e: errorData) totalError += e;
-    if (!errorData.isEmpty()) totalError /= errorData.size();
-    totalErrorLabel->setText(QString("Средняя ошибка за всё время: %1").arg(totalError));
+    if (stepResult.hasGroundTruth) {
+        double totalError = 0.0;
+        for (double e : errorData) totalError += e;
+        if (!errorData.isEmpty()) totalError /= errorData.size();
+        totalErrorLabel->setText(QString("Средняя ошибка за всё время: %1").arg(totalError));
 
-    double recentError = 0.0;
-    int recentCount =0;
-    for (int i = errorData.size()-1; i>=0; --i) {
-        if (timeData.last() - timeData[i] <= 3.0) {
-            recentError += errorData[i];
-            recentCount++;
-        } else break;
+        double recentError = 0.0;
+        int recentCount = 0;
+        for (int i = errorData.size() - 1; i >= 0; --i) {
+            if (errorTimeData.last() - errorTimeData[i] <= 3.0) {
+                recentError += errorData[i];
+                recentCount++;
+            } else {
+                break;
+            }
+        }
+        if (recentCount > 0) {
+            recentError /= recentCount;
+            recentErrorLabel->setText(QString("Средняя ошибка за последние 3 секунды: %1").arg(recentError));
+        } else {
+            recentErrorLabel->setText("Средняя ошибка за последние 3 секунды: 0.0");
+        }
+    } else {
+        totalErrorLabel->setText("Средняя ошибка за всё время: N/A (нет ground truth)");
+        recentErrorLabel->setText("Средняя ошибка за последние 3 секунды: N/A (нет ground truth)");
     }
-    if (recentCount > 0) {
-        recentError /= recentCount;
-        recentErrorLabel->setText(QString("Средняя ошибка за последние 3 секунды: %1").arg(recentError));
+
+    if (std::isfinite(stepResult.nis)) {
+        nisLabel->setText(QString("Последний NIS: %1").arg(stepResult.nis));
+    } else {
+        nisLabel->setText("Последний NIS: N/A");
+    }
+    acceptanceLabel->setText(stepResult.measurementAccepted
+                             ? "Последнее измерение: принято"
+                             : "Последнее измерение: отклонено (gating)");
+
+    if (stepResult.calibrationEnabled) {
+        const QString stateText = stepResult.calibrationConverged ? "сходимость достигнута" : "идет подстройка";
+        calibrationStatusLabel->setText(
+            QString("Калибровка: %1 | eX=%2 eY=%3")
+            .arg(stateText)
+            .arg(stepResult.calibrationErrorX, 0, 'f', 5)
+            .arg(stepResult.calibrationErrorY, 0, 'f', 5));
+        calibrationGainsLabel->setText(
+            QString("Коэффициенты каналов: %1 %2 %3 %4")
+            .arg(stepResult.calibrationGains(0), 0, 'f', 3)
+            .arg(stepResult.calibrationGains(1), 0, 'f', 3)
+            .arg(stepResult.calibrationGains(2), 0, 'f', 3)
+            .arg(stepResult.calibrationGains(3), 0, 'f', 3));
+    } else {
+        calibrationStatusLabel->setText("Калибровка: выключена");
+        calibrationGainsLabel->setText("Коэффициенты каналов: 1.000 1.000 1.000 1.000");
     }
 
-    // Авто-масштабирование осей (пример)
-    // ... (опущено для краткости, можно взять логику из исходного кода)
+    if (stepResult.hardwareFeedbackEnabled) {
+        const QString applyState = stepResult.hardwareFeedbackApplied ? "применено" : "ожидание";
+        hardwareFeedbackLabel->setText(
+            QString("Аппаратная ОС: %1 | F=[%2 %3 %4 %5] MHz | A=[%6 %7 %8 %9]")
+                .arg(applyState)
+                .arg(stepResult.hardwareFrequenciesMHz(0), 0, 'f', 3)
+                .arg(stepResult.hardwareFrequenciesMHz(1), 0, 'f', 3)
+                .arg(stepResult.hardwareFrequenciesMHz(2), 0, 'f', 3)
+                .arg(stepResult.hardwareFrequenciesMHz(3), 0, 'f', 3)
+                .arg(stepResult.hardwareAmplitudes(0), 0, 'f', 3)
+                .arg(stepResult.hardwareAmplitudes(1), 0, 'f', 3)
+                .arg(stepResult.hardwareAmplitudes(2), 0, 'f', 3)
+                .arg(stepResult.hardwareAmplitudes(3), 0, 'f', 3));
+    } else {
+        hardwareFeedbackLabel->setText("Аппаратная ОС: неактивна");
+    }
 
     rawIntensityPlot->replot();
     filteredIntensityPlot->replot();
@@ -509,13 +679,30 @@ void MainWindow::updatePlots() {
     trueCoordinatePlot->replot();
     errorPlot->replot();
 
-    // Логирование данных
-    dataLogger->addRecord(currentTime, measurement, currentState, trueX, trueY, estimatedX, estimatedY, errorVal);
+    dataLogger->addRecord(stepResult.time,
+                          stepResult.rawMeasurement,
+                          stepResult.calibratedMeasurement,
+                          stepResult.filteredState,
+                          stepResult.trueX,
+                          stepResult.trueY,
+                          stepResult.estimatedX,
+                          stepResult.estimatedY,
+                          stepResult.error,
+                          stepResult.calibrationEnabled,
+                          stepResult.calibrationConverged,
+                          stepResult.calibrationErrorX,
+                          stepResult.calibrationErrorY,
+                          stepResult.calibrationGains,
+                          stepResult.hardwareFeedbackEnabled,
+                          stepResult.hardwareFeedbackApplied,
+                          stepResult.hardwareFrequenciesMHz,
+                          stepResult.hardwareAmplitudes);
 
     iteration++;
 }
 
 void MainWindow::loadRealData() {
+    loadedMeasurements.clear();
     QFile file(QString::fromStdString(config.inputDataFile));
     if (!file.open(QIODevice::ReadOnly)) {
         showError("Не удалось открыть файл реальных данных.");
@@ -530,14 +717,25 @@ void MainWindow::loadRealData() {
     }
 
     QJsonArray arr = doc.array();
-    for (auto val: arr) {
+    for (const auto &val : arr) {
+        if (!val.isObject()) {
+            continue;
+        }
         QJsonObject obj = val.toObject();
         QJsonArray measArr = obj["measurements"].toArray();
         if (measArr.size() == 4) {
+            bool validRow = true;
             Eigen::VectorXd m(4);
-            for (int i=0; i<4; ++i)
+            for (int i = 0; i < 4; ++i) {
+                if (!measArr[i].isDouble()) {
+                    validRow = false;
+                    break;
+                }
                 m(i) = measArr[i].toDouble();
-            loadedMeasurements.append(m);
+            }
+            if (validRow && !m.hasNaN()) {
+                loadedMeasurements.append(m);
+            }
         }
     }
 }
