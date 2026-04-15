@@ -6,12 +6,16 @@
 #include <QGroupBox>
 #include <QGuiApplication>
 #include <QHBoxLayout>
+#include <QIntValidator>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QMessageBox>
+#include <QMutexLocker>
 #include <QPushButton>
+#include <QScrollArea>
 #include <QScreen>
+#include <QSplitter>
 #include <QVBoxLayout>
 #include <algorithm>
 #include <cmath>
@@ -21,6 +25,81 @@
 #include <qwt_legend.h>
 #include <qwt_plot_panner.h>
 #include <qwt_plot_zoomer.h>
+
+HardwareInputThread::HardwareInputThread(TrackingEngine *trackingEngine, QObject *parent)
+    : QThread(parent), engine(trackingEngine) {}
+
+HardwareInputThread::~HardwareInputThread() {
+    requestStop();
+    wait(2000);
+}
+
+void HardwareInputThread::requestStop() {
+    QMutexLocker locker(&mutex);
+    stopRequested = true;
+}
+
+bool HardwareInputThread::popResult(TrackingStepResult &result) {
+    QMutexLocker locker(&mutex);
+    if (resultQueue.empty()) {
+        return false;
+    }
+    result = resultQueue.front();
+    resultQueue.pop_front();
+    return true;
+}
+
+bool HardwareInputThread::takeError(QString &errorMessage) {
+    QMutexLocker locker(&mutex);
+    if (fatalError.isEmpty()) {
+        return false;
+    }
+    errorMessage = fatalError;
+    fatalError.clear();
+    return true;
+}
+
+bool HardwareInputThread::isWorkerFinished() const {
+    QMutexLocker locker(&mutex);
+    return finished;
+}
+
+void HardwareInputThread::run() {
+    if (!engine) {
+        QMutexLocker locker(&mutex);
+        fatalError = "Hardware input thread has no tracking engine.";
+        finished = true;
+        return;
+    }
+
+    while (true) {
+        {
+            QMutexLocker locker(&mutex);
+            if (stopRequested) {
+                finished = true;
+                return;
+            }
+        }
+
+        TrackingStepResult stepResult;
+        std::string error;
+        const bool ok = engine->step(stepResult, error);
+
+        QMutexLocker locker(&mutex);
+        if (!ok) {
+            if (!error.empty()) {
+                fatalError = QString::fromStdString(error);
+            }
+            finished = true;
+            return;
+        }
+
+        resultQueue.push_back(stepResult);
+        if (resultQueue.size() > 1024) {
+            resultQueue.pop_front();
+        }
+    }
+}
 
 MainWindow::MainWindow(const Config &cfg, QWidget *parent)
     : QMainWindow(parent), config(cfg), iteration(0), isRunning(false)
@@ -70,21 +149,43 @@ MainWindow::MainWindow(const Config &cfg, QWidget *parent)
 
     dataLogger->logMessage("Application started");
 
-    if (config.mode == "realtime" || config.mode == "hardware") {
+    if (config.mode == "realtime") {
         loadRealData();
     }
 
     updateTimer = new QTimer(this);
     connect(updateTimer, &QTimer::timeout, this, &MainWindow::updatePlots);
+    updateHardwareDeviceStatus();
 }
 
 MainWindow::~MainWindow() {
+    if (hardwareInputThread) {
+        hardwareInputThread->requestStop();
+        hardwareInputThread->wait(2000);
+        hardwareInputThread.reset();
+    }
+    if (trackingEngine) {
+        trackingEngine->reset();
+        trackingEngine.reset();
+    }
+    if (manualBoardDriver) {
+        manualBoardDriver->disconnect();
+        manualBoardDriver.reset();
+    }
     // При выходе ~DataLogger сохранит JSON
 }
 
 void MainWindow::setupUI() {
     QWidget *centralWidget = new QWidget(this);
-    QVBoxLayout *mainLayout = new QVBoxLayout(centralWidget);
+    QHBoxLayout *rootLayout = new QHBoxLayout(centralWidget);
+    rootLayout->setContentsMargins(10, 10, 10, 10);
+    rootLayout->setSpacing(10);
+
+    setStyleSheet(
+        "QGroupBox { font-weight: 600; margin-top: 8px; }"
+        "QGroupBox::title { subcontrol-origin: margin; left: 8px; padding: 0 4px; }"
+        "QLineEdit { min-height: 24px; padding: 2px 6px; }"
+        "QPushButton { min-height: 28px; padding: 4px 10px; }");
 
     QGroupBox *filterGroupBox = new QGroupBox("Параметры фильтра");
     QGridLayout *filterLayout = new QGridLayout();
@@ -115,6 +216,12 @@ void MainWindow::setupUI() {
     calibrationRateEdit->setValidator(validator);
     calibrationToleranceEdit->setValidator(validator);
 
+    const int compactEditWidth = 130;
+    for (auto *edit : {alphaEdit, betaEdit, kappaEdit, processNoiseEdit, measurementNoiseEdit,
+                       outlierNisThresholdEdit, calibrationRateEdit, calibrationToleranceEdit}) {
+        edit->setMaximumWidth(compactEditWidth);
+    }
+
     filterLayout->addWidget(new QLabel("Alpha:"), 0, 0);
     filterLayout->addWidget(alphaEdit, 0, 1);
     filterLayout->addWidget(new QLabel("Beta:"), 1, 0);
@@ -144,6 +251,8 @@ void MainWindow::setupUI() {
 
     gapSizeEdit = new QLineEdit(QString::number(config.gapSize));
     gapSizeEdit->setValidator(validator);
+    noiseLevelEdit->setMaximumWidth(compactEditWidth);
+    gapSizeEdit->setMaximumWidth(compactEditWidth);
 
     simulationLayout->addWidget(new QLabel("Noise Level:"), 0, 0);
     simulationLayout->addWidget(noiseLevelEdit, 0, 1);
@@ -151,6 +260,41 @@ void MainWindow::setupUI() {
     simulationLayout->addWidget(gapSizeEdit, 1, 1);
 
     simulationGroupBox->setLayout(simulationLayout);
+
+    QGroupBox *hardwareGroupBox = new QGroupBox("Параметры оборудования");
+    QGridLayout *hardwareLayout = new QGridLayout();
+
+    hardwareSerialEdit = new QLineEdit(QString::number(config.hardwareSerialNumber));
+    hardwareSerialEdit->setValidator(new QIntValidator(0, 255, this));
+    hardwareSerialEdit->setMaximumWidth(compactEditWidth);
+
+    hardwareLayout->addWidget(new QLabel("Serial:"), 0, 0);
+    hardwareLayout->addWidget(hardwareSerialEdit, 0, 1);
+
+    for (int i = 0; i < 4; ++i) {
+        hardwareFrequencyEdits[i] = new QLineEdit(
+            QString::number(config.hardwareFrequenciesMHz[static_cast<std::size_t>(i)]));
+        hardwareAmplitudeEdits[i] = new QLineEdit(
+            QString::number(config.hardwareAmplitudes[static_cast<std::size_t>(i)]));
+        hardwareFrequencyEdits[i]->setValidator(validator);
+        hardwareAmplitudeEdits[i]->setValidator(validator);
+        hardwareFrequencyEdits[i]->setMaximumWidth(compactEditWidth);
+        hardwareAmplitudeEdits[i]->setMaximumWidth(100);
+        hardwareLayout->addWidget(new QLabel(QString("F%1 (MHz):").arg(i + 1)), i + 1, 0);
+        hardwareLayout->addWidget(hardwareFrequencyEdits[i], i + 1, 1);
+        hardwareLayout->addWidget(new QLabel(QString("A%1:").arg(i + 1)), i + 1, 2);
+        hardwareLayout->addWidget(hardwareAmplitudeEdits[i], i + 1, 3);
+    }
+
+    hardwareConnectButton = new QPushButton("Connect");
+    hardwareDisconnectButton = new QPushButton("Disconnect");
+    hardwareDisconnectButton->setEnabled(false);
+    hardwareDeviceStatusLabel = new QLabel("Устройство: не подключено");
+
+    hardwareLayout->addWidget(hardwareConnectButton, 5, 0, 1, 2);
+    hardwareLayout->addWidget(hardwareDisconnectButton, 5, 2, 1, 2);
+    hardwareLayout->addWidget(hardwareDeviceStatusLabel, 6, 0, 1, 4);
+    hardwareGroupBox->setLayout(hardwareLayout);
 
     startButton = new QPushButton("Старт");
     stopButton = new QPushButton("Стоп");
@@ -169,19 +313,25 @@ void MainWindow::setupUI() {
 
     for (auto *edit : {alphaEdit, betaEdit, kappaEdit, processNoiseEdit, measurementNoiseEdit,
                        outlierNisThresholdEdit, calibrationRateEdit, calibrationToleranceEdit,
-                       noiseLevelEdit, gapSizeEdit}) {
+                       noiseLevelEdit, gapSizeEdit, hardwareSerialEdit}) {
         connect(edit, &QLineEdit::editingFinished, this, &MainWindow::onParametersChanged);
+    }
+    for (int i = 0; i < 4; ++i) {
+        connect(hardwareFrequencyEdits[i], &QLineEdit::editingFinished, this, &MainWindow::onParametersChanged);
+        connect(hardwareAmplitudeEdits[i], &QLineEdit::editingFinished, this, &MainWindow::onParametersChanged);
     }
     connect(outlierGatingCheck, &QCheckBox::toggled, this, &MainWindow::onParametersChanged);
     connect(calibrationFeedbackCheck, &QCheckBox::toggled, this, &MainWindow::onParametersChanged);
+    connect(hardwareConnectButton, &QPushButton::clicked, this, &MainWindow::connectHardwareDevice);
+    connect(hardwareDisconnectButton, &QPushButton::clicked, this, &MainWindow::disconnectHardwareDevice);
 
     QGroupBox *intensityGroupBox = new QGroupBox("Отображение интенсивностей");
-    QHBoxLayout *intensityLayout = new QHBoxLayout();
+    QGridLayout *intensityLayout = new QGridLayout();
     QString labels[4] = {"I1", "I2", "I3", "I4"};
     for (int i = 0; i < 4; ++i) {
         intensityCheckBoxes[i] = new QCheckBox(labels[i]);
         intensityCheckBoxes[i]->setChecked(true);
-        intensityLayout->addWidget(intensityCheckBoxes[i]);
+        intensityLayout->addWidget(intensityCheckBoxes[i], i / 2, i % 2);
         int index = i;
         connect(intensityCheckBoxes[i], &QCheckBox::toggled, [this, index](bool checked){
             onIntensityCurveToggled(index, checked);
@@ -257,13 +407,45 @@ void MainWindow::setupUI() {
     plotsLayout->addWidget(estimatedCoordinatePlot, 1, 0);
     plotsLayout->addWidget(trueCoordinatePlot, 1, 1);
     plotsLayout->addWidget(errorPlot, 2, 0, 1, 2);
+    plotsLayout->setColumnStretch(0, 1);
+    plotsLayout->setColumnStretch(1, 1);
+    plotsLayout->setRowStretch(0, 2);
+    plotsLayout->setRowStretch(1, 2);
+    plotsLayout->setRowStretch(2, 2);
 
-    mainLayout->addWidget(filterGroupBox);
-    mainLayout->addWidget(simulationGroupBox);
-    mainLayout->addLayout(buttonLayout);
-    mainLayout->addWidget(intensityGroupBox);
-    mainLayout->addWidget(errorGroupBox);
-    mainLayout->addLayout(plotsLayout);
+    QWidget *controlsWidget = new QWidget(this);
+    QVBoxLayout *controlsLayout = new QVBoxLayout(controlsWidget);
+    controlsLayout->setContentsMargins(0, 0, 0, 0);
+    controlsLayout->setSpacing(8);
+    controlsLayout->addWidget(filterGroupBox);
+    controlsLayout->addWidget(simulationGroupBox);
+    controlsLayout->addWidget(hardwareGroupBox);
+    controlsLayout->addLayout(buttonLayout);
+    controlsLayout->addWidget(intensityGroupBox);
+    controlsLayout->addStretch(1);
+
+    QScrollArea *controlsScroll = new QScrollArea(this);
+    controlsScroll->setWidgetResizable(true);
+    controlsScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    controlsScroll->setMinimumWidth(420);
+    controlsScroll->setMaximumWidth(520);
+    controlsScroll->setWidget(controlsWidget);
+
+    QWidget *plotsWidget = new QWidget(this);
+    QVBoxLayout *plotsContainerLayout = new QVBoxLayout(plotsWidget);
+    plotsContainerLayout->setContentsMargins(0, 0, 0, 0);
+    plotsContainerLayout->setSpacing(8);
+    errorGroupBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
+    plotsContainerLayout->addWidget(errorGroupBox);
+    plotsContainerLayout->addLayout(plotsLayout, 1);
+
+    QSplitter *splitter = new QSplitter(Qt::Horizontal, this);
+    splitter->addWidget(controlsScroll);
+    splitter->addWidget(plotsWidget);
+    splitter->setStretchFactor(0, 0);
+    splitter->setStretchFactor(1, 1);
+    splitter->setSizes(QList<int>{460, 1200});
+    rootLayout->addWidget(splitter);
 
     setCentralWidget(centralWidget);
 
@@ -392,6 +574,21 @@ void MainWindow::validateInput() {
 
     val = gapSizeEdit->text().toDouble(&ok);
     if (!ok || val < 0.0 || val >= 1.0) throw std::runtime_error("Некорректное значение Gap Size.");
+
+    int serial = hardwareSerialEdit->text().toInt(&ok);
+    if (!ok || serial < 0 || serial > 255) {
+        throw std::runtime_error("Некорректный serial number (должен быть в диапазоне 0..255).");
+    }
+    for (int i = 0; i < 4; ++i) {
+        const double freq = hardwareFrequencyEdits[i]->text().toDouble(&ok);
+        if (!ok || freq <= 0.0) {
+            throw std::runtime_error("Некорректная аппаратная частота канала.");
+        }
+        const double amp = hardwareAmplitudeEdits[i]->text().toDouble(&ok);
+        if (!ok || amp < 0.0 || amp > 1.0) {
+            throw std::runtime_error("Некорректная аппаратная амплитуда (должна быть в диапазоне [0,1]).");
+        }
+    }
 }
 
 void MainWindow::onParametersChanged() {
@@ -409,6 +606,13 @@ void MainWindow::onParametersChanged() {
     config.calibrationTargetTolerance = calibrationToleranceEdit->text().toDouble();
     config.noiseLevel = noiseLevelEdit->text().toDouble();
     config.gapSize = gapSizeEdit->text().toDouble();
+    config.hardwareSerialNumber = hardwareSerialEdit->text().toInt();
+    for (int i = 0; i < 4; ++i) {
+        config.hardwareFrequenciesMHz[static_cast<std::size_t>(i)] =
+            static_cast<float>(hardwareFrequencyEdits[i]->text().toDouble());
+        config.hardwareAmplitudes[static_cast<std::size_t>(i)] =
+            static_cast<float>(hardwareAmplitudeEdits[i]->text().toDouble());
+    }
 }
 
 void MainWindow::startSimulation() {
@@ -427,9 +631,17 @@ void MainWindow::startSimulation() {
     onParametersChanged();
 
     std::vector<Eigen::VectorXd> realtimeMeasurements;
-    realtimeMeasurements.reserve(static_cast<std::size_t>(loadedMeasurements.size()));
-    for (const auto &measurement : loadedMeasurements) {
-        realtimeMeasurements.push_back(measurement);
+    if (config.mode == "realtime") {
+        realtimeMeasurements.reserve(static_cast<std::size_t>(loadedMeasurements.size()));
+        for (const auto &measurement : loadedMeasurements) {
+            realtimeMeasurements.push_back(measurement);
+        }
+    }
+
+    if (config.mode == "hardware" && manualBoardDriver && manualBoardDriver->isConnected()) {
+        manualBoardDriver->disconnect();
+        manualBoardDriver.reset();
+        updateHardwareDeviceStatus();
     }
 
     trackingEngine = std::make_unique<TrackingEngine>(config);
@@ -440,23 +652,15 @@ void MainWindow::startSimulation() {
         return;
     }
 
-    alphaEdit->setEnabled(false);
-    betaEdit->setEnabled(false);
-    kappaEdit->setEnabled(false);
-    processNoiseEdit->setEnabled(false);
-    measurementNoiseEdit->setEnabled(false);
-    outlierGatingCheck->setEnabled(false);
-    outlierNisThresholdEdit->setEnabled(false);
-    calibrationFeedbackCheck->setEnabled(false);
-    calibrationRateEdit->setEnabled(false);
-    calibrationToleranceEdit->setEnabled(false);
-    noiseLevelEdit->setEnabled(false);
-    gapSizeEdit->setEnabled(false);
-    for (int i = 0; i < 4; ++i) {
-        intensityCheckBoxes[i]->setEnabled(false);
-    }
+    setControlsEnabled(false);
 
     iteration = 0;
+    threadedHardwareInput = (config.mode == "hardware");
+    if (threadedHardwareInput) {
+        hardwareInputThread = std::make_unique<HardwareInputThread>(trackingEngine.get(), this);
+        hardwareInputThread->start();
+    }
+
     initializeCurves();
     if (config.mode == "simulation") {
         totalErrorLabel->setText("Средняя ошибка за всё время: 0.0");
@@ -492,23 +696,16 @@ void MainWindow::stopSimulation() {
     isRunning = false;
     updateTimer->stop();
 
-    alphaEdit->setEnabled(true);
-    betaEdit->setEnabled(true);
-    kappaEdit->setEnabled(true);
-    processNoiseEdit->setEnabled(true);
-    measurementNoiseEdit->setEnabled(true);
-    outlierGatingCheck->setEnabled(true);
-    outlierNisThresholdEdit->setEnabled(true);
-    calibrationFeedbackCheck->setEnabled(true);
-    calibrationRateEdit->setEnabled(true);
-    calibrationToleranceEdit->setEnabled(true);
-    noiseLevelEdit->setEnabled(true);
-    gapSizeEdit->setEnabled(true);
-    for (int i = 0; i < 4; ++i) {
-        intensityCheckBoxes[i]->setEnabled(true);
+    if (hardwareInputThread) {
+        hardwareInputThread->requestStop();
+        hardwareInputThread->wait(3000);
+        hardwareInputThread.reset();
     }
+    threadedHardwareInput = false;
 
+    setControlsEnabled(true);
     trackingEngine.reset();
+    updateHardwareDeviceStatus();
 
     startButton->setEnabled(true);
     stopButton->setEnabled(false);
@@ -543,6 +740,80 @@ void MainWindow::resetSimulation() {
     resetButton->setEnabled(false);
 }
 
+void MainWindow::setControlsEnabled(bool enabled) {
+    alphaEdit->setEnabled(enabled);
+    betaEdit->setEnabled(enabled);
+    kappaEdit->setEnabled(enabled);
+    processNoiseEdit->setEnabled(enabled);
+    measurementNoiseEdit->setEnabled(enabled);
+    outlierGatingCheck->setEnabled(enabled);
+    outlierNisThresholdEdit->setEnabled(enabled);
+    calibrationFeedbackCheck->setEnabled(enabled);
+    calibrationRateEdit->setEnabled(enabled);
+    calibrationToleranceEdit->setEnabled(enabled);
+    noiseLevelEdit->setEnabled(enabled);
+    gapSizeEdit->setEnabled(enabled);
+    hardwareSerialEdit->setEnabled(enabled);
+    for (int i = 0; i < 4; ++i) {
+        intensityCheckBoxes[i]->setEnabled(enabled);
+        hardwareFrequencyEdits[i]->setEnabled(enabled);
+        hardwareAmplitudeEdits[i]->setEnabled(enabled);
+    }
+    hardwareConnectButton->setEnabled(enabled);
+    hardwareDisconnectButton->setEnabled(enabled && manualBoardDriver && manualBoardDriver->isConnected());
+}
+
+void MainWindow::updateHardwareDeviceStatus() {
+    if (manualBoardDriver && manualBoardDriver->isConnected()) {
+        hardwareDeviceStatusLabel->setText(
+            QString("Устройство: подключено (%1)")
+                .arg(QString::fromStdString(manualBoardDriver->name())));
+        hardwareConnectButton->setEnabled(false);
+        hardwareDisconnectButton->setEnabled(!isRunning);
+    } else {
+        hardwareDeviceStatusLabel->setText("Устройство: не подключено");
+        hardwareConnectButton->setEnabled(!isRunning);
+        hardwareDisconnectButton->setEnabled(false);
+    }
+}
+
+void MainWindow::connectHardwareDevice() {
+    if (isRunning) {
+        QMessageBox::warning(this, "Ошибка", "Нельзя подключать устройство во время активной симуляции.");
+        return;
+    }
+
+    try {
+        validateInput();
+    } catch (const std::exception &e) {
+        showError(e.what());
+        return;
+    }
+    onParametersChanged();
+
+    manualBoardDriver = createBoardDriver();
+    BoardConnectionConfig hwCfg;
+    hwCfg.serialNumber = config.hardwareSerialNumber;
+    hwCfg.applyOutputOnConnect = config.hardwareApplyOutputOnConnect;
+    hwCfg.frequenciesMHz = config.hardwareFrequenciesMHz;
+    hwCfg.amplitudes = config.hardwareAmplitudes;
+
+    std::string error;
+    if (!manualBoardDriver->connect(hwCfg, error)) {
+        showError(QString("Не удалось подключить устройство: %1").arg(QString::fromStdString(error)));
+        manualBoardDriver.reset();
+    }
+    updateHardwareDeviceStatus();
+}
+
+void MainWindow::disconnectHardwareDevice() {
+    if (manualBoardDriver) {
+        manualBoardDriver->disconnect();
+        manualBoardDriver.reset();
+    }
+    updateHardwareDeviceStatus();
+}
+
 void MainWindow::onIntensityCurveToggled(int index, bool checked) {
     if (index >= 0 && index < 4) {
         rawIntensityCurves[index]->setVisible(checked);
@@ -555,6 +826,33 @@ void MainWindow::onIntensityCurveToggled(int index, bool checked) {
 void MainWindow::updatePlots() {
     if (!isRunning || !trackingEngine) return;
 
+    if (threadedHardwareInput) {
+        if (!hardwareInputThread) {
+            stopSimulation();
+            return;
+        }
+
+        QString workerError;
+        if (hardwareInputThread->takeError(workerError)) {
+            dataLogger->logMessage(QString("Engine step failed: %1").arg(workerError));
+            showError(workerError);
+            stopSimulation();
+            return;
+        }
+
+        int processed = 0;
+        TrackingStepResult stepResult;
+        while (processed < 32 && hardwareInputThread->popResult(stepResult)) {
+            processStepResult(stepResult);
+            ++processed;
+        }
+
+        if (processed == 0 && hardwareInputThread->isWorkerFinished()) {
+            stopSimulation();
+        }
+        return;
+    }
+
     TrackingStepResult stepResult;
     std::string error;
     if (!trackingEngine->step(stepResult, error)) {
@@ -565,7 +863,10 @@ void MainWindow::updatePlots() {
         stopSimulation();
         return;
     }
+    processStepResult(stepResult);
+}
 
+void MainWindow::processStepResult(const TrackingStepResult &stepResult) {
     if (!stepResult.measurementAccepted) {
         dataLogger->logMessage(QString("Measurement rejected by NIS gating. NIS=%1").arg(stepResult.nis));
     }

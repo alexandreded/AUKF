@@ -47,7 +47,7 @@ public:
     void reset();
 
 private:
-    bool nextMeasurement(Eigen::VectorXd &measurement, double &trueX, double &trueY);
+    bool nextMeasurement(Eigen::VectorXd &measurement, double &trueX, double &trueY, std::string &error);
     Eigen::VectorXd applyCalibration(const Eigen::VectorXd &measurement) const;
     void updateCalibrationFeedback(const Eigen::VectorXd &measurement, bool measurementAccepted);
     bool updateHardwareFeedback(bool measurementAccepted, std::string &error);

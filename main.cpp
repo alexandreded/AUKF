@@ -6,6 +6,7 @@
 
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
+    app.setStyle("Fusion");
 
     Config config;
     // Диалог выбора режима работы
@@ -24,7 +25,7 @@ int main(int argc, char *argv[]) {
         // при необходимости здесь можно добавить диалог выбора файла
     } else if (msgBox.clickedButton() == hardwareButton) {
         config.mode = "hardware";
-        // В текущей реализации hardware использует детекторный поток из inputDataFile.
+        // Hardware получает измерения напрямую с платы через BoardDriver::readMeasurement().
     } else if (msgBox.clickedButton() == calibrationButton) {
         config.mode = "hardware";
         config.enableCalibrationFeedback = true;

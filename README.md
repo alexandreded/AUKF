@@ -10,7 +10,9 @@ The project supports simulation, replay of detector measurements, and hardware m
 - Deterministic beam simulation with configurable noise, gap, and motion speed.
 - Real-time replay mode from JSON detector stream.
 - Hardware mode through `BoardDriver` abstraction.
+- Direct hardware detector acquisition via `BoardDriver::readMeasurement(...)` (no `inputDataFile` dependency in hardware mode).
 - Calibration feedback: software channel-gain adaptation and optional full hardware feedback loop (frequency/amplitude corrections sent to board output).
+- Non-blocking hardware acquisition in GUI via dedicated `QThread`.
 - Qt GUI with Qwt plots for raw/filtered intensities, coordinates, error, and diagnostics.
 - Structured JSON logging with metadata and per-step telemetry.
 
@@ -72,9 +74,9 @@ At startup, choose one of the modes:
 - `Hardware`
 - `Calibration (feedback)` (hardware mode + feedback enabled)
 
-## Input Data Format (Realtime/Hardware Detector Stream)
+## Input Data Format (Realtime only)
 
-`Config.inputDataFile` (default: `data_from_detector.json`) must contain a JSON array:
+`Config.inputDataFile` (default: `data_from_detector.json`) is used only in `realtime` mode and must contain a JSON array:
 
 ```json
 [
@@ -142,4 +144,4 @@ ctest --test-dir build --output-on-failure
 
 - `Qwt library not found`: install Qwt dev package and ensure headers/libs are discoverable by CMake.
 - Hardware mode fails with AD995x error: verify `libusb-1.0`, check `ad995x_usb_aod_driver.h` include path, and validate USB permissions/device connection.
-- `Hardware connected, but detector stream is empty`: provide valid `data_from_detector.json` (or change `Config.inputDataFile`).
+- `Failed to read detector measurement from board`: verify firmware register mapping for detector channels and USB link stability.

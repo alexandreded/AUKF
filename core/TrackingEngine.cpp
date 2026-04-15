@@ -71,14 +71,17 @@ bool TrackingEngine::initialize(const std::vector<Eigen::VectorXd> &realtimeMeas
             return false;
         }
 
-        if (loadedMeasurements.empty()) {
-            error = "Hardware connected, but detector stream is empty. Provide detector data in inputDataFile.";
+        std::array<double, 4> firstMeasurement{};
+        if (!boardDriver->readMeasurement(firstMeasurement, hwError)) {
+            error = "Hardware measurement read failed: " + hwError;
             boardDriver->disconnect();
             boardDriver.reset();
             return false;
         }
-        currentMeasurementIndex = 0;
-        initialMeasurement = loadedMeasurements[currentMeasurementIndex++];
+        initialMeasurement.resize(4);
+        for (int i = 0; i < 4; ++i) {
+            initialMeasurement(i) = firstMeasurement[static_cast<std::size_t>(i)];
+        }
     } else {
         if (loadedMeasurements.empty()) {
             error = "Нет данных для real-time режима.";
@@ -110,7 +113,7 @@ bool TrackingEngine::initialize(const std::vector<Eigen::VectorXd> &realtimeMeas
     return true;
 }
 
-bool TrackingEngine::nextMeasurement(Eigen::VectorXd &measurement, double &trueX, double &trueY) {
+bool TrackingEngine::nextMeasurement(Eigen::VectorXd &measurement, double &trueX, double &trueY, std::string &error) {
     if (config.mode == "simulation") {
         measurement = beamSimulation->moveBeamAndIntegrate(config.beamPower, config.beamWidth);
         trueX = beamSimulation->getXc();
@@ -121,8 +124,22 @@ bool TrackingEngine::nextMeasurement(Eigen::VectorXd &measurement, double &trueX
     if (config.mode == "hardware") {
         if (!boardDriver || !boardDriver->isConnected()) {
             finished = true;
+            error = "Hardware board is not connected.";
             return false;
         }
+        std::array<double, 4> detectorMeasurement{};
+        std::string readError;
+        if (!boardDriver->readMeasurement(detectorMeasurement, readError)) {
+            error = "Failed to read detector measurement from board: " + readError;
+            return false;
+        }
+        measurement.resize(4);
+        for (int i = 0; i < 4; ++i) {
+            measurement(i) = detectorMeasurement[static_cast<std::size_t>(i)];
+        }
+        trueX = std::numeric_limits<double>::quiet_NaN();
+        trueY = std::numeric_limits<double>::quiet_NaN();
+        return true;
     }
 
     if (currentMeasurementIndex >= loadedMeasurements.size()) {
@@ -147,7 +164,7 @@ bool TrackingEngine::step(TrackingStepResult &result, std::string &error) {
     Eigen::VectorXd measurement(4);
     double trueX = 0.0;
     double trueY = 0.0;
-    if (!nextMeasurement(measurement, trueX, trueY)) {
+    if (!nextMeasurement(measurement, trueX, trueY, error)) {
         return false;
     }
     if (measurement.hasNaN()) {
